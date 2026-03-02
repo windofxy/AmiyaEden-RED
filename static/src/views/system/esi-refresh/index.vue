@@ -64,14 +64,7 @@
 </template>
 
 <script setup lang="ts">
-  import {
-    ElCard,
-    ElTag,
-    ElButton,
-    ElMessageBox,
-    ElSelect,
-    ElOption
-  } from 'element-plus'
+  import { ElCard, ElTag, ElButton, ElMessageBox, ElSelect, ElOption } from 'element-plus'
   import { useTable } from '@/hooks/core/useTable'
   import { useTableColumns } from '@/hooks/core/useTableColumns'
   import {
@@ -217,9 +210,7 @@
           label: '状态',
           width: 100,
           formatter: (row: TaskStatus) =>
-            h(ElTag, { type: statusType(row.status), size: 'small' }, () =>
-              statusLabel(row.status)
-            )
+            h(ElTag, { type: statusType(row.status), size: 'small' }, () => statusLabel(row.status))
         },
         {
           prop: 'last_run',
@@ -274,11 +265,11 @@
 
   // ─── 手动触发（按任务名 — 所有角色） ───
   const handleRunTaskByName = async (row: TaskInfo) => {
-    await ElMessageBox.confirm(
-      `确定要对所有角色执行「${row.description}」吗？`,
-      '执行确认',
-      { confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning' }
-    )
+    await ElMessageBox.confirm(`确定要对所有角色执行「${row.description}」吗？`, '执行确认', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
     runningByName.value.add(row.name)
     try {
       await runESIRefreshTaskByName({ task_name: row.name })

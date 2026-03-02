@@ -40,7 +40,6 @@
   import { User } from '@element-plus/icons-vue'
   import { fuzzySearch } from '@/api/sde'
   import { useUserStore } from '@/store/modules/user'
-import { use } from 'echarts'
 
   useI18n()
   const userStore = useUserStore()

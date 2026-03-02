@@ -29,7 +29,9 @@
             <span class="block text-sm font-medium text-g-800 truncate">{{
               userInfo.userName
             }}</span>
-            <span class="block mt-0.5 text-xs text-g-500 truncate">{{ userInfo.roles?.[0] || '' }}</span>
+            <span class="block mt-0.5 text-xs text-g-500 truncate">{{
+              userInfo.roles?.[0] || ''
+            }}</span>
           </div>
         </div>
         <ul class="py-4 mt-3 border-t border-g-300/80">
@@ -52,8 +54,6 @@
   import { useRouter } from 'vue-router'
   import { ElMessageBox } from 'element-plus'
   import { useUserStore } from '@/store/modules/user'
-  import { WEB_LINKS } from '@/utils/constants'
-  import { mittBus } from '@/utils/sys'
 
   defineOptions({ name: 'ArtUserMenu' })
 
@@ -70,27 +70,6 @@
    */
   const goPage = (path: string): void => {
     router.push(path)
-  }
-
-  /**
-   * 打开文档页面
-   */
-  const toDocs = (): void => {
-    window.open(WEB_LINKS.DOCS)
-  }
-
-  /**
-   * 打开 GitHub 页面
-   */
-  const toGithub = (): void => {
-    window.open(WEB_LINKS.GITHUB)
-  }
-
-  /**
-   * 打开锁屏功能
-   */
-  const lockScreen = (): void => {
-    mittBus.emit('openLockScreen')
   }
 
   /**

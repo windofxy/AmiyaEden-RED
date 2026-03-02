@@ -19,9 +19,7 @@
         :showAxisLine="false"
       />
     </div>
-    <div v-else class="flex-cc h-[calc(100%-40px)] text-g-500 text-sm">
-      暂无 PAP 数据
-    </div>
+    <div v-else class="flex-cc h-[calc(100%-40px)] text-g-500 text-sm"> 暂无 PAP 数据 </div>
   </div>
 </template>
 

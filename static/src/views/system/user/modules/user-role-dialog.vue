@@ -1,11 +1,5 @@
 <template>
-  <ElDialog
-    v-model="dialogVisible"
-    title="分配角色"
-    width="480px"
-    align-center
-    @open="onOpen"
-  >
+  <ElDialog v-model="dialogVisible" title="分配角色" width="480px" align-center @open="onOpen">
     <ElForm label-width="80px">
       <ElFormItem label="用户">
         <div class="flex items-center gap-2">

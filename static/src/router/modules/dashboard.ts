@@ -28,6 +28,6 @@ export const dashboardRoutes: AppRouteRecord = {
         title: 'menus.characters.title',
         keepAlive: true
       }
-    },
+    }
   ]
 }

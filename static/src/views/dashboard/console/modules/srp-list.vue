@@ -10,11 +10,15 @@
         </p>
       </div>
     </div>
-    <div v-if="list.length === 0" class="flex-cc h-30 text-g-500 text-sm">
-      暂无补损申请记录
-    </div>
-    <ArtTable v-else :data="list" size="large" :border="false" :stripe="false"
-      :header-cell-style="{ background: 'transparent' }">
+    <div v-if="list.length === 0" class="flex-cc h-30 text-g-500 text-sm"> 暂无补损申请记录 </div>
+    <ArtTable
+      v-else
+      :data="list"
+      size="large"
+      :border="false"
+      :stripe="false"
+      :header-cell-style="{ background: 'transparent' }"
+    >
       <template #default>
         <ElTableColumn label="角色" prop="character_name" min-width="120" />
         <ElTableColumn label="舰船" prop="ship_name" min-width="140" />
@@ -36,22 +40,14 @@
         </ElTableColumn>
         <ElTableColumn label="审批" min-width="90" align="center">
           <template #default="{ row }">
-            <ElTag
-              :type="reviewStatusType(row.review_status)"
-              size="small"
-              effect="plain"
-            >
+            <ElTag :type="reviewStatusType(row.review_status)" size="small" effect="plain">
               {{ reviewStatusLabel(row.review_status) }}
             </ElTag>
           </template>
         </ElTableColumn>
         <ElTableColumn label="发放" min-width="90" align="center">
           <template #default="{ row }">
-            <ElTag
-              :type="payoutStatusType(row.payout_status)"
-              size="small"
-              effect="plain"
-            >
+            <ElTag :type="payoutStatusType(row.payout_status)" size="small" effect="plain">
               {{ payoutStatusLabel(row.payout_status) }}
             </ElTag>
           </template>
@@ -78,11 +74,17 @@
   }
 
   const reviewStatusLabel = (status: string): string => {
-    const map: Record<string, string> = { pending: '待审批', approved: '已通过', rejected: '已拒绝' }
+    const map: Record<string, string> = {
+      pending: '待审批',
+      approved: '已通过',
+      rejected: '已拒绝'
+    }
     return map[status] ?? status
   }
 
-  const reviewStatusType = (status: string): 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
+  const reviewStatusType = (
+    status: string
+  ): 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
     const map: Record<string, 'primary' | 'success' | 'warning' | 'danger' | 'info'> = {
       pending: 'warning',
       approved: 'success',
@@ -96,7 +98,9 @@
     return map[status] ?? status
   }
 
-  const payoutStatusType = (status: string): 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
+  const payoutStatusType = (
+    status: string
+  ): 'primary' | 'success' | 'warning' | 'danger' | 'info' => {
     const map: Record<string, 'primary' | 'success' | 'warning' | 'danger' | 'info'> = {
       pending: 'info',
       paid: 'success'

@@ -62,7 +62,17 @@
 </template>
 
 <script setup lang="ts">
-  import { ElCard, ElForm, ElFormItem, ElSelect, ElOption, ElButton, ElEmpty, type FormInstance, type FormRules } from 'element-plus'
+  import {
+    ElCard,
+    ElForm,
+    ElFormItem,
+    ElSelect,
+    ElOption,
+    ElButton,
+    ElEmpty,
+    type FormInstance,
+    type FormRules
+  } from 'element-plus'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
   import { fetchMyCharacters } from '@/api/auth'
@@ -85,7 +95,9 @@
   const formData = reactive({ character_id: undefined as number | undefined })
 
   const formRules: FormRules = {
-    character_id: [{ required: true, message: t('fleet.join.selectCharacterPlaceholder'), trigger: 'change' }]
+    character_id: [
+      { required: true, message: t('fleet.join.selectCharacterPlaceholder'), trigger: 'change' }
+    ]
   }
 
   // ---- 加载角色列表 ----

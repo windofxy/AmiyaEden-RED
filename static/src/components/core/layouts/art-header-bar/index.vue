@@ -114,14 +114,13 @@
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n'
   import { useRouter } from 'vue-router'
-  import { useFullscreen, useWindowSize } from '@vueuse/core'
+  import { useWindowSize } from '@vueuse/core'
   import { LanguageEnum, MenuTypeEnum } from '@/enums/appEnum'
   import { useSettingStore } from '@/store/modules/setting'
   import { useUserStore } from '@/store/modules/user'
   import { useMenuStore } from '@/store/modules/menu'
   import AppConfig from '@/config'
   import { languageOptions } from '@/locales'
-  import { mittBus } from '@/utils/sys'
   import { themeAnimation } from '@/utils/ui/animation'
   import { useCommon } from '@/hooks/core/useCommon'
   import { useHeaderBar } from '@/hooks/core/useHeaderBar'
@@ -129,9 +128,6 @@
   import ArtUserMenu from './widget/ArtUserMenu.vue'
 
   defineOptions({ name: 'ArtHeaderBar' })
-
-  // 检测操作系统类型
-  const isWindows = navigator.userAgent.includes('Windows')
 
   const router = useRouter()
   const { locale } = useI18n()
@@ -145,20 +141,13 @@
   const {
     shouldShowMenuButton,
     shouldShowRefreshButton,
-    shouldShowFastEnter,
     shouldShowBreadcrumb,
-    shouldShowGlobalSearch,
-    shouldShowFullscreen,
     shouldShowNotification,
-    shouldShowChat,
     shouldShowLanguage,
-    shouldShowSettings,
-    shouldShowThemeToggle,
-    fastEnterMinWidth: headerBarFastEnterMinWidth
+    shouldShowThemeToggle
   } = useHeaderBar()
 
-  const { menuOpen, systemThemeColor, showSettingGuide, menuType, isDark, tabStyle } =
-    storeToRefs(settingStore)
+  const { menuOpen, menuType, isDark, tabStyle } = storeToRefs(settingStore)
 
   const { language } = storeToRefs(userStore)
   const { menuList } = storeToRefs(menuStore)
@@ -172,8 +161,6 @@
   const isDualMenu = computed(() => menuType.value === MenuTypeEnum.DUAL_MENU)
   const isTopMenu = computed(() => menuType.value === MenuTypeEnum.TOP)
   const isTopLeftMenu = computed(() => menuType.value === MenuTypeEnum.TOP_LEFT)
-
-  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
 
   onMounted(() => {
     initLanguage()
@@ -202,13 +189,6 @@
    */
   const onUnreadChange = (count: number): void => {
     hasUnread.value = count > 0
-  }
-
-  /**
-   * 切换全屏状态
-   */
-  const toggleFullScreen = (): void => {
-    toggleFullscreen()
   }
 
   /**
@@ -257,25 +237,6 @@
   }
 
   /**
-   * 打开设置面板
-   */
-  const openSetting = (): void => {
-    mittBus.emit('openSetting')
-
-    // 隐藏设置引导提示
-    if (showSettingGuide.value) {
-      settingStore.hideSettingGuide()
-    }
-  }
-
-  /**
-   * 打开全局搜索对话框
-   */
-  const openSearchDialog = (): void => {
-    mittBus.emit('openSearchDialog')
-  }
-
-  /**
    * 点击页面其他区域关闭通知面板
    * @param {Event} e - 点击事件对象
    */
@@ -298,13 +259,6 @@
    */
   const visibleNotice = (): void => {
     showNotice.value = !showNotice.value
-  }
-
-  /**
-   * 打开聊天窗口
-   */
-  const openChat = (): void => {
-    mittBus.emit('openChat')
   }
 </script>
 
