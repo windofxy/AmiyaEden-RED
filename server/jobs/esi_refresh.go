@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"amiya-eden/global"
-	"amiya-eden/internal/repository"
 	"amiya-eden/internal/service"
 	"amiya-eden/pkg/eve/esi"
 	"context"
@@ -23,17 +22,24 @@ func GetESIQueue() *esi.Queue {
 func registerESIRefreshJob(c *cron.Cron) {
 	esiQueue = esi.NewQueue()
 
-	charRepo := repository.NewEveCharacterRepository()
 	rollSvc := service.NewRoleService()
 
-	// 注入新角色全量刷新钩子：ESI 拉取完成后（corp_id 已写入）再做军团准入检查
-	service.OnNewCharacterFunc = func(characterID int64) {
+	// 注入同步钩子：仅执行 affiliation 拉取 + 军团准入检查（在 JWT 生成前同步调用）
+	service.OnNewCharacterSyncFunc = func(characterID int64, userID uint) {
 		ctx := context.Background()
-		esiQueue.RunAllForCharacter(ctx, characterID)
-		// ESI 刷新已写入 CorporationID，立即检查准入
-		if char, err := charRepo.GetByCharacterID(characterID); err == nil {
-			_ = rollSvc.CheckCorpAccessAndAdjustRole(ctx, char.UserID)
+		// RunTask 内部同步执行，affiliation 为公开接口，速度快（~100ms）
+		if err := esiQueue.RunTask("affiliation", characterID); err != nil {
+			global.Logger.Warn("[ESI SyncHook] affiliation 任务执行失败",
+				zap.Int64("character_id", characterID),
+				zap.Error(err),
+			)
 		}
+		_ = rollSvc.CheckCorpAccessAndAdjustRole(ctx, userID)
+	}
+
+	// 注入新角色全量刷新钩子：SSO 回调完成后后台异步执行，跑全部 ESI 任务
+	service.OnNewCharacterFunc = func(characterID int64) {
+		esiQueue.RunAllForCharacter(context.Background(), characterID)
 	}
 
 	// 注入已有角色绑定/重登录钩子：corp_id 已知，直接检查准入
