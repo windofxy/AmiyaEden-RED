@@ -1,5 +1,4 @@
 services:
-  # ─────────────────── Backend (Go) ───────────────────
   backend:
     build:
       context: ./server
@@ -17,24 +16,3 @@ services:
       - ./server/logs:/app/logs
     ports:
       - "8080:8080"
-    networks:
-      - amiya-net
-
-  # ─────────────────── Frontend (Nginx) ───────────────────
-  frontend:
-    build:
-      context: ./static
-      dockerfile: Dockerfile
-    container_name: amiya-eden-frontend
-    restart: unless-stopped
-    depends_on:
-      - backend
-    ports:
-      - "80:80"
-    networks:
-      - amiya-net
-
-# ─────────────────── Networks ───────────────────
-networks:
-  amiya-net:
-    driver: bridge
