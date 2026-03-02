@@ -7,7 +7,7 @@ database:
   port: 5432
   user: "postgres"
   password: ""
-  dbname: "amiya-eden"
+  dbname: "amiya_eden"
   sslmode: "disable"
   max_idle_conns: 10
   max_open_conns: 100

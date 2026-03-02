@@ -16,6 +16,31 @@
 
 ---
 
+## 效果预览
+
+1. 总览
+    ![总览界面](./docs/img/console.png)
+2. EVE角色绑定管理
+    ![角色绑定](./docs/img/character_binding.png)
+3. 舰队行动列表：支持舰队邀请
+    ![舰队行动](./docs/img/fleet_details.png)
+4. PAP 查看(军团+联盟)
+    ![PAP 列表](./docs/img/pap.png)
+5. 技能列表
+    ![技能列表](./docs/img/character_skills.png)
+6. 兑换商店
+    ![兑换商店](./docs/img/shop_view.png)
+    ![兑换商店2](./docs/img/shop_manage.png)
+7. SRP
+    ![SRP 列表](./docs/img/srp_apply.png)
+    ![SRP 详情](./docs/img/srp_detail.png)
+8. ESI 刷新
+    ![ESI 刷新](./docs/img/esi_refresh.png)
+9. 联盟PAP
+    ![联盟PAP](./docs/img/alliance_pap.png)
+
+---
+
 ## 技术栈
 
 | 层     | 技术                                          |
