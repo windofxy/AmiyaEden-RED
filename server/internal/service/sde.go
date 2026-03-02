@@ -566,3 +566,8 @@ func (s *SdeService) GetTypes(typeIDs []int, published *bool, languageID string)
 func (s *SdeService) GetNames(ids map[string][]int, languageID string) (map[int]string, error) {
 	return s.repo.GetNames(ids, languageID)
 }
+
+// FuzzySearch 模糊搜索物品/成员名称
+func (s *SdeService) FuzzySearch(keyword string, languageID string, categoryIDs []int, excludeCategoryIDs []int, limit int, searchMember bool) ([]repository.FuzzySearchItem, error) {
+	return s.repo.FuzzySearch(keyword, languageID, categoryIDs, excludeCategoryIDs, limit, searchMember)
+}

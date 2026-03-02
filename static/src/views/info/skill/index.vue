@@ -300,14 +300,19 @@
     )
   })
 
-  /** 当前正在训练的技能 */
+  /** 当前正在训练的技能（根据时间计算，跳过已完成的） */
   const currentTraining = computed(() => {
-    return skillData.value?.skill_queue?.find((q) => q.queue_position === 0) ?? null
+    if (!skillData.value?.skill_queue?.length) return null
+    const now = Math.floor(Date.now() / 1000)
+    return skillData.value.skill_queue.find((q) => q.finish_date > now) ?? null
   })
 
-  /** 队列中除第一个之外的技能 */
+  /** 队列中当前训练之后的技能 */
   const queueWithoutFirst = computed(() => {
-    return skillData.value?.skill_queue?.filter((q) => q.queue_position > 0) ?? []
+    if (!skillData.value?.skill_queue?.length) return []
+    const current = currentTraining.value
+    if (!current) return []
+    return skillData.value.skill_queue.filter((q) => q.queue_position > current.queue_position)
   })
 
   /** 队列中 skill_id 集合（快速查找） */

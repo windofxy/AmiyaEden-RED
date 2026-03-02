@@ -1,15 +1,15 @@
 <template>
   <div class="info-wallet-page art-full-height">
-    <!-- 角色切换器 -->
-    <ElCard shadow="never" class="mb-4">
-      <div class="flex items-center justify-between">
+    <!-- 角色切换器 + 余额展示（特殊上下文选择器，非标准搜索栏） -->
+    <ElCard class="art-card" shadow="never">
+      <div class="flex items-center justify-between flex-wrap gap-4">
         <div class="flex items-center gap-4">
           <span class="text-sm text-gray-500">{{ $t('info.selectCharacter') }}</span>
           <ElSelect
             v-model="selectedCharacterId"
             :placeholder="$t('info.selectCharacterPlaceholder')"
-            @change="onCharacterChange"
             style="width: 240px"
+            @change="onCharacterChange"
           >
             <ElOption
               v-for="char in characters"
@@ -24,13 +24,13 @@
             </ElOption>
           </ElSelect>
         </div>
-        <div v-if="walletData">
+        <div v-if="walletBalance !== null">
           <p class="text-sm text-gray-500">{{ $t('info.walletBalance') }}</p>
           <p
             class="text-2xl font-bold mt-1"
-            :class="walletData.balance >= 0 ? 'text-green-600' : 'text-red-500'"
+            :class="walletBalance >= 0 ? 'text-green-600' : 'text-red-500'"
           >
-            {{ formatISK(walletData.balance) }} ISK
+            {{ formatISK(walletBalance) }} ISK
           </p>
         </div>
       </div>
@@ -38,163 +38,152 @@
 
     <!-- 流水表格 -->
     <ElCard class="art-table-card" shadow="never">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <span class="card-title">{{ $t('info.walletJournal') }}</span>
-          <ElButton :loading="loading" @click="loadData">
-            <el-icon class="mr-1"><Refresh /></el-icon>
-            {{ $t('common.refresh') }}
-          </ElButton>
-        </div>
-      </template>
+      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData" />
 
-      <ElTable
-        v-loading="loading"
-        :data="walletData?.journals ?? []"
-        stripe
-        border
-        style="width: 100%"
-      >
-        <ElTableColumn type="index" width="60" label="#" />
-        <ElTableColumn prop="date" :label="$t('info.journalDate')" width="180" />
-        <ElTableColumn prop="ref_type" :label="$t('info.journalType')" width="160" align="center">
-          <template #default="{ row }">
-            <ElTag size="small" effect="plain">{{ row.ref_type }}</ElTag>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn prop="amount" :label="$t('info.journalAmount')" width="160" align="right">
-          <template #default="{ row }">
-            <span :class="row.amount >= 0 ? 'text-green-600' : 'text-red-500'" class="font-medium">
-              {{ row.amount >= 0 ? '+' : '' }}{{ formatISK(row.amount) }}
-            </span>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn prop="balance" :label="$t('info.journalBalance')" width="160" align="right">
-          <template #default="{ row }">{{ formatISK(row.balance) }}</template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="description"
-          :label="$t('info.journalDescription')"
-          min-width="240"
-          show-overflow-tooltip
-        />
-        <ElTableColumn
-          prop="reason"
-          :label="$t('info.journalReason')"
-          min-width="160"
-          show-overflow-tooltip
-        />
-      </ElTable>
-
-      <ElEmpty
-        v-if="!loading && (!walletData || walletData.journals.length === 0)"
-        :description="$t('info.noJournalData')"
+      <ArtTable
+        :loading="loading"
+        :data="data"
+        :columns="columns"
+        :pagination="pagination"
+        :empty-text="$t('info.noJournalData')"
+        @pagination:size-change="handleSizeChange"
+        @pagination:current-change="handleCurrentChange"
       />
-
-      <div v-if="pagination.total > 0" class="pagination-wrapper">
-        <ElPagination
-          v-model:current-page="pagination.page"
-          v-model:page-size="pagination.pageSize"
-          :total="pagination.total"
-          :page-sizes="[20, 50, 100]"
-          layout="total, sizes, prev, pager, next, jumper"
-          background
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
     </ElCard>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { Refresh } from '@element-plus/icons-vue'
-  import {
-    ElCard,
-    ElSelect,
-    ElOption,
-    ElAvatar,
-    ElTable,
-    ElTableColumn,
-    ElTag,
-    ElButton,
-    ElPagination,
-    ElEmpty
-  } from 'element-plus'
+  import { useTable } from '@/hooks/core/useTable'
+  import { ElTag, ElAvatar, ElSelect, ElOption } from 'element-plus'
   import { fetchMyCharacters } from '@/api/auth'
   import { fetchInfoWallet } from '@/api/eve-info'
+  import { useI18n } from 'vue-i18n'
 
   defineOptions({ name: 'EveInfoWallet' })
 
-  const characters = ref<Api.Auth.EveCharacter[]>([])
-  const selectedCharacterId = ref<number>()
-  const walletData = ref<Api.EveInfo.WalletResponse | null>(null)
-  const loading = ref(false)
-  const pagination = reactive({ page: 1, pageSize: 20, total: 0 })
+  type WalletJournal = Api.EveInfo.WalletJournal
 
+  const { t } = useI18n()
+
+  // ─── 余额（从 API 响应中捕获） ───
+  const walletBalance = ref<number | null>(null)
+
+  // ─── ISK 格式化 ───
   const formatISK = (v: number) =>
     new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v)
 
+  // ─── API 适配器：标准化非标准响应并捕获余额 ───
+  const fetchWalletJournalList = async (params: {
+    character_id?: number
+    current: number
+    size: number
+  }): Promise<Api.Common.PaginatedResponse<WalletJournal>> => {
+    if (!params.character_id) {
+      return { list: [], total: 0, page: 1, pageSize: params.size }
+    }
+    const res = await fetchInfoWallet({
+      character_id: params.character_id,
+      page: params.current,
+      page_size: params.size
+    })
+    walletBalance.value = res?.balance ?? null
+    return {
+      list: res?.journals ?? [],
+      total: res?.total ?? 0,
+      page: res?.page ?? 1,
+      pageSize: res?.page_size ?? params.size
+    }
+  }
+
+  // ─── 表格 ───
+  const {
+    columns,
+    columnChecks,
+    data,
+    loading,
+    pagination,
+    searchParams,
+    handleSizeChange,
+    handleCurrentChange,
+    refreshData,
+    getData
+  } = useTable({
+    core: {
+      apiFn: fetchWalletJournalList,
+      apiParams: { character_id: undefined as number | undefined, current: 1, size: 20 },
+      immediate: false,
+      columnsFactory: () => [
+        {
+          prop: 'date',
+          label: t('info.journalDate'),
+          width: 180
+        },
+        {
+          prop: 'ref_type',
+          label: t('info.journalType'),
+          width: 180,
+          formatter: (row: WalletJournal) =>
+            h(ElTag, { size: 'small', effect: 'plain' }, () => row.ref_type)
+        },
+        {
+          prop: 'amount',
+          label: t('info.journalAmount'),
+          width: 160,
+          formatter: (row: WalletJournal) =>
+            h(
+              'span',
+              { class: `font-medium ${row.amount >= 0 ? 'text-green-600' : 'text-red-500'}` },
+              `${row.amount >= 0 ? '+' : ''}${formatISK(row.amount)}`
+            )
+        },
+        {
+          prop: 'balance',
+          label: t('info.journalBalance'),
+          width: 160,
+          formatter: (row: WalletJournal) =>
+            h('span', { class: 'font-medium text-green-600' }, formatISK(row.balance))
+        },
+        {
+          prop: 'description',
+          label: t('info.journalDescription'),
+          minWidth: 240,
+          showOverflowTooltip: true
+        },
+        {
+          prop: 'reason',
+          label: t('info.journalReason'),
+          minWidth: 160,
+          showOverflowTooltip: true
+        }
+      ]
+    }
+  })
+
+  // ─── 角色列表 ───
+  const characters = ref<Api.Auth.EveCharacter[]>([])
+  const selectedCharacterId = ref<number>()
+
+  const onCharacterChange = () => {
+    searchParams.character_id = selectedCharacterId.value
+    getData()
+  }
+
   const loadCharacters = async () => {
     try {
-      characters.value = await fetchMyCharacters()
-      if (characters.value.length > 0 && !selectedCharacterId.value) {
+      characters.value = (await fetchMyCharacters()) ?? []
+      if (characters.value.length > 0) {
         selectedCharacterId.value = characters.value[0].character_id
-        loadData()
+        searchParams.character_id = selectedCharacterId.value
+        getData()
       }
     } catch {
       characters.value = []
     }
   }
 
-  const loadData = async () => {
-    if (!selectedCharacterId.value) return
-    loading.value = true
-    try {
-      const res = await fetchInfoWallet({
-        character_id: selectedCharacterId.value,
-        page: pagination.page,
-        page_size: pagination.pageSize
-      })
-      walletData.value = res
-      pagination.total = res.total
-      pagination.page = res.page
-      pagination.pageSize = res.page_size
-    } catch {
-      walletData.value = null
-      pagination.total = 0
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const onCharacterChange = () => {
-    pagination.page = 1
-    loadData()
-  }
-
-  const handleSizeChange = () => {
-    pagination.page = 1
-    loadData()
-  }
-
-  const handleCurrentChange = () => {
-    loadData()
-  }
-
+  // ─── 初始化 ───
   onMounted(() => {
     loadCharacters()
   })
 </script>
-
-<style scoped>
-  .card-title {
-    font-size: 15px;
-    font-weight: 500;
-  }
-  .pagination-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-  }
-</style>

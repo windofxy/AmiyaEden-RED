@@ -11,3 +11,11 @@ export function fetchNames(data: {
     data
   })
 }
+
+/** 模糊搜索物品/成员名称 */
+export function fuzzySearch(data: Api.Sde.FuzzySearchRequest) {
+  return request.post<Api.Sde.FuzzySearchItem[]>({
+    url: '/api/v1/sde/search',
+    data
+  })
+}

@@ -51,9 +51,9 @@ declare namespace Api {
     /** 分页响应基础结构 */
     interface PaginatedResponse<T = any> {
       records: T[]
-      current: number
-      size: number
       total: number
+      page: number
+      pageSize: number
     }
 
     /** 启用状态 */
@@ -588,6 +588,7 @@ declare namespace Api {
       killmail_time: string
       ship_type_id: number
       solar_system_id: number
+      character_id: number
       victim_name: string
     }
 
@@ -922,6 +923,28 @@ declare namespace Api {
       skill_count: number
       skills: SkillItem[]
       skill_queue: SkillQueueItem[]
+    }
+  }
+
+  /** SDE 数据查询类型 */
+  namespace Sde {
+    /** 模糊搜索请求 */
+    interface FuzzySearchRequest {
+      keyword: string
+      language?: string
+      category_ids?: number[]
+      exclude_category_ids?: number[]
+      limit?: number
+      search_member?: boolean
+    }
+
+    /** 模糊搜索结果条目 */
+    interface FuzzySearchItem {
+      id: number
+      name: string
+      group_id: number
+      group_name: string
+      category: string // "type" | "character"
     }
   }
 }

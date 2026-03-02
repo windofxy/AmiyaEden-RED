@@ -62,10 +62,10 @@ func (h *FleetHandler) ListFleets(c *gin.Context) {
 		return
 	}
 	response.OK(c, gin.H{
-		"records": records,
-		"current": page,
-		"size":    size,
-		"total":   total,
+		"list":     records,
+		"page":     page,
+		"pageSize": size,
+		"total":    total,
 	})
 }
 

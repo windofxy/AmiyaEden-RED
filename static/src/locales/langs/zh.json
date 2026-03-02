@@ -317,7 +317,8 @@
     "allSkills": "全部技能",
     "unallocatedSPSuffix": " 未分配技能点。",
     "totalTrainingTime": "训练时间",
-    "queuedSPSuffix": "个技能点排队中"
+    "queuedSPSuffix": "个技能点排队中",
+    "journalIndex": "ID"
   },
   "shop": {
     "products": "商品列表",
@@ -427,7 +428,9 @@
       "balance": "余额",
       "transactions": "交易记录",
       "amount": "金额",
+      "balanceAfter": "余额",
       "reason": "说明",
+      "refType": "类型",
       "time": "时间",
       "empty": "暂无交易记录"
     }
@@ -464,13 +467,18 @@
       "fleetInfo": "集结信息",
       "otherAction": "其他行动 (使用前先联系补损官或FC)",
       "fleetNotePlaceholder": "把集结信息写在这里。",
+      "fleetDetailTitle": "舰队详情",
+      "fleetDetailFC": "FC",
+      "fleetDetailTime": "时间",
+      "fleetDetailImportance": "重要性",
+      "fleetDetailDesc": "描述",
       "killmail": "KillMail",
       "selectKillmail": "选择一个 KillMail",
       "previewKm": "预览 KM",
       "kmPreviewTitle": "KM 详情预览",
       "openZkillboard": "在 zKillboard 中查看",
       "loadingKm": "加载 KM 中...",
-      "noKmHint": "请先选择角色以加载 KM",
+      "noKmHint": "加载 KM 中...",
       "recommendedAmount": "推荐金额",
       "finalAmount": "申请金额",
       "finalAmountHint": "填 0 则使用推荐金额",
@@ -570,7 +578,8 @@
       "validName": "请填写舰船名称",
       "validAmount": "金额不能为负",
       "fields": {
-        "typeId": "舰船 TypeID",
+        "ship": "舰船",
+        "shipPlaceholder": "搜索舰船名称",
         "name": "舰船名称",
         "namePlaceholder": "舰船名称（中文或英文）",
         "amount": "补损金额 (ISK)"
@@ -589,6 +598,13 @@
       "rejected": "已拒绝",
       "paid": "已发放",
       "unpaid": "待发放"
+    }
+  },
+  "sde": {
+    "search": {
+      "placeholder": "输入关键词搜索",
+      "noResult": "无匹配结果",
+      "loading": "搜索中…"
     }
   },
   "table": {

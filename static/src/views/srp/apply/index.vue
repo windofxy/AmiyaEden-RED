@@ -13,34 +13,15 @@
       </ElAlert>
 
       <ElForm ref="formRef" :model="form" :rules="rules" label-position="top">
-        <ElFormItem :label="$t('srp.apply.selectCharacter')" prop="character_id">
-          <ElSelect
-            v-model="form.character_id"
-            :placeholder="$t('srp.apply.selectCharacter')"
-            style="width: 100%"
-            @change="onCharacterChange"
-          >
-            <ElOption
-              v-for="c in characters"
-              :key="c.character_id"
-              :label="c.character_name"
-              :value="c.character_id"
-            />
-          </ElSelect>
-        </ElFormItem>
-
         <ElFormItem :label="$t('srp.apply.killmail')" prop="killmail_id">
           <div class="km-select-row">
             <ElSelect
               v-model="form.killmail_id"
-              :placeholder="
-                form.character_id ? $t('srp.apply.selectKillmail') : $t('srp.apply.noKmHint')
-              "
+              :placeholder="$t('srp.apply.selectKillmail')"
               :loading="kmLoading"
               :loading-text="$t('srp.apply.loadingKm')"
               class="flex-1"
               filterable
-              :disabled="!form.character_id"
               @change="onKillmailSelect"
             >
               <ElOption
@@ -58,7 +39,6 @@
         </ElFormItem>
 
         <div class="fleet-info-section">
-          <h3 class="fleet-info-label">{{ $t('srp.apply.fleetInfo') }}</h3>
           <ElFormItem>
             <ElSelect
               v-model="form.fleet_id"
@@ -72,6 +52,34 @@
               <ElOption v-for="f in fleets" :key="f.id" :label="f.title" :value="f.id" />
             </ElSelect>
           </ElFormItem>
+
+          <!-- 选择指定舰队时：显示舰队详情（只读） -->
+          <div v-if="selectedFleetDetail" class="fleet-detail-card">
+            <h4 class="fleet-detail-title">{{ $t('srp.apply.fleetDetailTitle') }}</h4>
+            <div class="fleet-detail-row">
+              <span class="fleet-detail-label">{{ $t('srp.apply.fleetDetailFC') }}:</span>
+              <span>{{ selectedFleetDetail.fc_character_name }}</span>
+            </div>
+            <div class="fleet-detail-row">
+              <span class="fleet-detail-label">{{ $t('srp.apply.fleetDetailTime') }}:</span>
+              <span
+                >{{ formatTime(selectedFleetDetail.start_at) }} ~
+                {{ formatTime(selectedFleetDetail.end_at) }}</span
+              >
+            </div>
+            <div class="fleet-detail-row">
+              <span class="fleet-detail-label">{{ $t('srp.apply.fleetDetailImportance') }}:</span>
+              <ElTag size="small" :type="importanceTagType(selectedFleetDetail.importance)">{{
+                selectedFleetDetail.importance
+              }}</ElTag>
+            </div>
+            <div v-if="selectedFleetDetail.description" class="fleet-detail-row">
+              <span class="fleet-detail-label">{{ $t('srp.apply.fleetDetailDesc') }}:</span>
+              <span>{{ selectedFleetDetail.description }}</span>
+            </div>
+          </div>
+
+          <!-- 选择"其他行动"时：显示可编辑备注 -->
           <ElFormItem v-if="showNoteArea" :prop="noteRequired ? 'note' : ''">
             <ElInput
               v-model="form.note"
@@ -92,100 +100,16 @@
 
     <!-- 我的补损申请 -->
     <ElCard class="art-table-card mt-4" shadow="never">
-      <template #header>
-        <div class="table-header-bar">
-          <h2 class="text-base font-medium">{{ $t('srp.apply.title') }}</h2>
-        </div>
-      </template>
+      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData" />
 
-      <ElTable v-loading="loading" :data="applications" stripe border style="width: 100%">
-        <ElTableColumn prop="killmail_id" :label="$t('srp.apply.columns.id')">
-          <template #default="{ row }">
-            <ElLink
-              :href="`https://zkillboard.com/kill/${row.killmail_id}/`"
-              target="_blank"
-              type="primary"
-            >
-              {{ row.killmail_id }}
-            </ElLink>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="character_name"
-          :label="$t('srp.apply.columns.character')"
-          width="130"
-        />
-        <ElTableColumn prop="ship_type_id" :label="$t('srp.apply.columns.ship')">
-          <template #default="{ row }">
-            {{ getName(row.ship_type_id, `TypeID: ${row.ship_type_id}`) }}
-          </template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="recommended_amount"
-          :label="$t('srp.apply.columns.estimatedValue')"
-          width="130"
-          align="right"
-        >
-          <template #default="{ row }"> {{ formatISK(row.recommended_amount) }} ISK </template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="review_status"
-          :label="$t('srp.apply.columns.reviewStatus')"
-          width="110"
-          align="center"
-        >
-          <template #default="{ row }">
-            <ElTag :type="reviewStatusType(row.review_status)" size="small">
-              {{ reviewStatusLabel(row.review_status) }}
-            </ElTag>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="final_amount"
-          :label="$t('srp.apply.columns.actualAmount')"
-          align="right"
-        >
-          <template #default="{ row }">
-            <template v-if="row.final_amount > 0"> {{ formatISK(row.final_amount) }} ISK </template>
-            <span v-else>-</span>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn prop="payout_status" :label="$t('srp.apply.columns.paid')" align="center">
-          <template #default="{ row }">
-            {{ row.payout_status === 'paid' ? $t('srp.status.paid') : $t('srp.status.unpaid') }}
-          </template>
-        </ElTableColumn>
-        <ElTableColumn
-          :label="$t('srp.apply.columns.action')"
-          width="100"
-          align="center"
-          fixed="right"
-        >
-          <template #default="{ row }">
-            <ElButton type="primary" link size="small" @click="openTableKmPreview(row)">
-              <el-icon><View /></el-icon>
-            </ElButton>
-          </template>
-        </ElTableColumn>
-      </ElTable>
-
-      <div v-if="pagination.total > 0" class="pagination-wrapper">
-        <ElPagination
-          v-model:current-page="pagination.current"
-          v-model:page-size="pagination.size"
-          :total="pagination.total"
-          :page-sizes="[10, 20, 50]"
-          layout="total, sizes, prev, pager, next, jumper"
-          background
-          @size-change="
-            () => {
-              pagination.current = 1
-              loadApplications()
-            }
-          "
-          @current-change="loadApplications"
-        />
-      </div>
+      <ArtTable
+        :loading="loading"
+        :data="data"
+        :columns="columns"
+        :pagination="pagination"
+        @pagination:size-change="handleSizeChange"
+        @pagination:current-change="handleCurrentChange"
+      />
     </ElCard>
 
     <!-- KM 预览弹窗 -->
@@ -199,11 +123,8 @@
   import { View } from '@element-plus/icons-vue'
   import {
     ElCard,
-    ElTable,
-    ElTableColumn,
     ElTag,
     ElButton,
-    ElPagination,
     ElForm,
     ElFormItem,
     ElSelect,
@@ -215,8 +136,9 @@
     type FormInstance,
     type FormRules
   } from 'element-plus'
+  import { useTable } from '@/hooks/core/useTable'
+  import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
   import KmPreviewDialog from '@/components/business/KmPreviewDialog.vue'
-  import { fetchMyCharacters } from '@/api/auth'
   import { fetchFleetList } from '@/api/fleet'
   import {
     submitApplication,
@@ -234,10 +156,6 @@
   const { getName, resolve: resolveNames } = useNameResolver()
 
   /* ── 申请列表 ── */
-  const applications = ref<Api.Srp.Application[]>([])
-  const loading = ref(false)
-  const pagination = reactive({ current: 1, size: 10, total: 0 })
-
   const resolveApplicationNames = async (list: Api.Srp.Application[]) => {
     const typeIds = new Set<number>()
     const solarIds = new Set<number>()
@@ -253,33 +171,103 @@
     })
   }
 
-  const loadApplications = async () => {
-    loading.value = true
-    try {
-      const res = await fetchMyApplications({
-        current: pagination.current,
-        size: pagination.size
-      })
-      applications.value = res?.records ?? []
-      pagination.total = res?.total ?? 0
-      if (applications.value.length) await resolveApplicationNames(applications.value)
-    } catch {
-      applications.value = []
-    } finally {
-      loading.value = false
+  const {
+    columns,
+    columnChecks,
+    data,
+    loading,
+    pagination,
+    handleSizeChange,
+    handleCurrentChange,
+    refreshData
+  } = useTable({
+    core: {
+      apiFn: fetchMyApplications,
+      apiParams: { current: 1, size: 5 },
+      columnsFactory: () => [
+        { type: 'index', width: 60, label: '#' },
+        {
+          prop: 'killmail_id',
+          label: t('srp.apply.columns.id'),
+          width: 120,
+          formatter: (row: Api.Srp.Application) =>
+            h(
+              ElLink,
+              {
+                href: `https://zkillboard.com/kill/${row.killmail_id}/`,
+                target: '_blank',
+                type: 'primary'
+              },
+              () => String(row.killmail_id)
+            )
+        },
+        {
+          prop: 'character_name',
+          label: t('srp.apply.columns.character'),
+          width: 130,
+          showOverflowTooltip: true
+        },
+        {
+          prop: 'ship_type_id',
+          label: t('srp.apply.columns.ship'),
+          minWidth: 140,
+          showOverflowTooltip: true,
+          formatter: (row: Api.Srp.Application) =>
+            h('span', {}, getName(row.ship_type_id, `TypeID: ${row.ship_type_id}`))
+        },
+        {
+          prop: 'recommended_amount',
+          label: t('srp.apply.columns.estimatedValue'),
+          width: 140,
+          formatter: (row: Api.Srp.Application) =>
+            h('span', {}, `${formatISK(row.recommended_amount)} ISK`)
+        },
+        {
+          prop: 'review_status',
+          label: t('srp.apply.columns.reviewStatus'),
+          width: 110,
+          formatter: (row: Api.Srp.Application) =>
+            h(ElTag, { type: reviewStatusType(row.review_status), size: 'small' }, () =>
+              reviewStatusLabel(row.review_status)
+            )
+        },
+        {
+          prop: 'final_amount',
+          label: t('srp.apply.columns.actualAmount'),
+          width: 130,
+          formatter: (row: Api.Srp.Application) =>
+            row.final_amount > 0
+              ? h('span', {}, `${formatISK(row.final_amount)} ISK`)
+              : h('span', {}, '-')
+        },
+        {
+          prop: 'payout_status',
+          label: t('srp.apply.columns.paid'),
+          width: 100,
+          formatter: (row: Api.Srp.Application) =>
+            h(
+              'span',
+              {},
+              row.payout_status === 'paid' ? t('srp.status.paid') : t('srp.status.unpaid')
+            )
+        },
+        {
+          prop: 'actions',
+          label: t('srp.apply.columns.action'),
+          width: 80,
+          fixed: 'right',
+          formatter: (row: Api.Srp.Application) =>
+            h(ArtButtonTable, { type: 'view', onClick: () => openTableKmPreview(row) })
+        }
+      ]
     }
-  }
+  })
+
+  watch(data, async (list) => {
+    if (list.length) await resolveApplicationNames(list)
+  })
 
   /* ── 角色 & 舰队 ── */
-  const characters = ref<Api.Auth.EveCharacter[]>([])
-  const loadCharacters = async () => {
-    try {
-      characters.value = (await fetchMyCharacters()) ?? []
-    } catch {
-      characters.value = []
-    }
-  }
-
   const fleets = ref<Api.Fleet.FleetItem[]>([])
   const loadFleets = async () => {
     try {
@@ -308,8 +296,17 @@
   const showNoteArea = computed(() => form.fleet_id === OTHER_ACTION)
   const noteRequired = computed(() => form.fleet_id === OTHER_ACTION || !form.fleet_id)
 
+  // 选中的舰队详情（非"__other__"且非空时显示）
+  const selectedFleetDetail = computed(() => {
+    if (!form.fleet_id || form.fleet_id === OTHER_ACTION) return null
+    return fleets.value.find((f) => f.id === form.fleet_id) ?? null
+  })
+
+  const importanceTagType = (v: string): TagType =>
+    (({ strat_op: 'danger', cta: 'warning', other: 'info' }) as Record<string, TagType>)[v] ??
+    'info'
+
   const rules: FormRules = {
-    character_id: [{ required: true, message: t('srp.apply.selectCharacter'), trigger: 'change' }],
     killmail_id: [
       {
         required: true,
@@ -334,10 +331,6 @@
     ` @${getName(km.solar_system_id, String(km.solar_system_id))}`
 
   const loadKillmails = async () => {
-    if (!form.character_id) {
-      fleetKillmails.value = []
-      return
-    }
     kmLoading.value = true
     fleetKillmails.value = []
     form.killmail_id = 0
@@ -347,7 +340,7 @@
         fleetKillmails.value = list ?? []
         if (!list?.length) ElMessage.info(t('srp.apply.noKmFound'))
       } else {
-        const list = await fetchMyKillmails(form.character_id)
+        const list = await fetchMyKillmails()
         fleetKillmails.value = list ?? []
       }
 
@@ -372,12 +365,6 @@
     }
   }
 
-  const onCharacterChange = () => {
-    form.killmail_id = 0
-    form.recommended_amount = 0
-    loadKillmails()
-  }
-
   const onFleetChange = () => {
     form.killmail_id = 0
     if (form.fleet_id !== OTHER_ACTION) {
@@ -386,7 +373,10 @@
     loadKillmails()
   }
 
-  const onKillmailSelect = (_: number) => {
+  const onKillmailSelect = (kmId: number) => {
+    // 从选中的 KM 自动推导 character_id
+    const km = fleetKillmails.value.find((k) => k.killmail_id === kmId)
+    form.character_id = km?.character_id ?? 0
     form.recommended_amount = 0
   }
 
@@ -406,8 +396,9 @@
       formRef.value?.resetFields()
       form.fleet_id = ''
       form.recommended_amount = 0
-      fleetKillmails.value = []
-      loadApplications()
+      form.character_id = 0
+      loadKillmails()
+      refreshData()
     } catch {
       /* handled */
     } finally {
@@ -428,10 +419,6 @@
   const openTableKmPreview = (row: Api.Srp.Application) => {
     previewKillmailId.value = row.killmail_id
     kmPreviewVisible.value = true
-  }
-
-  const openZkillboard = (killmailId: number) => {
-    window.open(`https://zkillboard.com/kill/${killmailId}/`, '_blank')
   }
 
   /* ── 工具函数 ── */
@@ -455,14 +442,13 @@
     })[s as 'pending' | 'approved' | 'rejected'] ?? s
 
   /* ── 初始化 ── */
-  onMounted(() => {
+  onMounted(async () => {
     const fid = route.query.fleet_id as string
+    await loadFleets()
     if (fid) {
       form.fleet_id = fid
     }
-    loadCharacters()
-    loadFleets()
-    loadApplications()
+    loadKillmails()
   })
 </script>
 
@@ -478,9 +464,8 @@
   }
 
   .fleet-info-section {
-    border-top: 1px solid #ebeef5;
-    padding-top: 16px;
-    margin-top: 8px;
+    padding-top: 4px;
+    margin-top: 4px;
   }
 
   .fleet-info-label {
@@ -490,15 +475,28 @@
     color: #606266;
   }
 
-  .table-header-bar {
-    margin: -20px;
-    padding: 12px 20px;
-    border-radius: 4px 4px 0 0;
+  .fleet-detail-card {
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
   }
 
-  .pagination-wrapper {
+  .fleet-detail-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .fleet-detail-row {
     display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 24px;
+  }
+
+  .fleet-detail-label {
+    font-weight: 500;
+    min-width: 50px;
   }
 </style>

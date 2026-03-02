@@ -3,7 +3,7 @@
   <div class="art-full-height">
     <ElCard class="art-table-card" shadow="never">
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
-        <template #default>
+        <template #left>
           <ElButton type="primary" :icon="Plus" @click="openCreateDialog">新增角色</ElButton>
         </template>
       </ArtTableHeader>
@@ -19,20 +19,26 @@
     </ElCard>
 
     <!-- 创建/编辑角色对话框 -->
-    <ElDialog v-model="dialogVisible" :title="editingRole ? '编辑角色' : '新增角色'" width="480px" destroy-on-close>
+    <ElDialog
+      v-model="dialogVisible"
+      :title="editingRole ? '编辑角色' : '新增角色'"
+      width="480px"
+      destroy-on-close
+    >
       <ElForm ref="formRef" :model="formData" :rules="formRules" label-width="80px">
         <ElFormItem label="角色编码" prop="code">
-          <ElInput
-            v-model="formData.code"
-            placeholder="如 custom_role"
-            :disabled="!!editingRole"
-          />
+          <ElInput v-model="formData.code" placeholder="如 custom_role" :disabled="!!editingRole" />
         </ElFormItem>
         <ElFormItem label="角色名称" prop="name">
           <ElInput v-model="formData.name" placeholder="角色显示名称" />
         </ElFormItem>
         <ElFormItem label="描述">
-          <ElInput v-model="formData.description" type="textarea" :rows="3" placeholder="角色描述（可选）" />
+          <ElInput
+            v-model="formData.description"
+            type="textarea"
+            :rows="3"
+            placeholder="角色描述（可选）"
+          />
         </ElFormItem>
         <ElFormItem label="排序">
           <ElInputNumber v-model="formData.sort" :min="0" :max="999" />
@@ -131,7 +137,16 @@
           fixed: 'right',
           formatter: (row: RoleItem) =>
             h('div', { class: 'flex gap-1' }, [
-              h(ElButton, { size: 'small', type: 'warning', icon: Setting, onClick: () => openPermDialog(row) }, () => '权限'),
+              h(
+                ElButton,
+                {
+                  size: 'small',
+                  type: 'warning',
+                  icon: Setting,
+                  onClick: () => openPermDialog(row)
+                },
+                () => '权限'
+              ),
               h(ArtButtonTable, { type: 'edit', onClick: () => openEditDialog(row) }),
               h(ArtButtonTable, {
                 type: 'delete',
@@ -160,7 +175,11 @@
   const formRules: FormRules = {
     code: [
       { required: true, message: '请输入角色编码', trigger: 'blur' },
-      { pattern: /^[a-z][a-z0-9_]*$/, message: '小写字母开头，仅含字母/数字/下划线', trigger: 'blur' }
+      {
+        pattern: /^[a-z][a-z0-9_]*$/,
+        message: '小写字母开头，仅含字母/数字/下划线',
+        trigger: 'blur'
+      }
     ],
     name: [{ required: true, message: '请输入角色名称', trigger: 'blur' }]
   }

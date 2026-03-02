@@ -40,162 +40,16 @@
     </ElCard>
 
     <ElCard class="art-table-card" shadow="never">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-medium">{{ $t('srp.manage.title') }}</h2>
-          <ElButton :loading="loading" @click="loadApplications">
-            <el-icon class="mr-1"><Refresh /></el-icon>
-            {{ $t('srp.manage.refresh') }}
-          </ElButton>
-        </div>
-      </template>
+      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData" />
 
-      <ElTable v-loading="loading" :data="applications" stripe border style="width: 100%">
-        <ElTableColumn prop="id" :label="$t('srp.manage.columns.id')" width="70" align="center" />
-        <ElTableColumn
-          prop="character_name"
-          :label="$t('srp.manage.columns.character')"
-          width="150"
-        />
-        <ElTableColumn prop="ship_type_id" :label="$t('srp.manage.columns.ship')" width="180">
-          <template #default="{ row }">{{
-            getName(row.ship_type_id, `TypeID: ${row.ship_type_id}`)
-          }}</template>
-        </ElTableColumn>
-        <ElTableColumn prop="solar_system_id" :label="$t('srp.manage.columns.system')" width="140">
-          <template #default="{ row }">{{
-            getName(row.solar_system_id, String(row.solar_system_id))
-          }}</template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="killmail_id"
-          :label="$t('srp.manage.columns.killId')"
-          width="110"
-          align="center"
-        >
-          <template #default="{ row }">
-            <ElLink
-              :href="`https://zkillboard.com/kill/${row.killmail_id}/`"
-              target="_blank"
-              type="primary"
-              >{{ row.killmail_id }}</ElLink
-            >
-          </template>
-        </ElTableColumn>
-        <ElTableColumn prop="killmail_time" :label="$t('srp.manage.columns.kmTime')" width="175">
-          <template #default="{ row }">{{ formatTime(row.killmail_time) }}</template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="corporation_id"
-          :label="$t('srp.manage.columns.corporation')"
-          width="180"
-          show-overflow-tooltip
-        >
-          <template #default="{ row }">{{
-            getName(row.corporation_id, row.corporation_id ? `ID: ${row.corporation_id}` : '-')
-          }}</template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="alliance_id"
-          :label="$t('srp.manage.columns.alliance')"
-          width="180"
-          show-overflow-tooltip
-        >
-          <template #default="{ row }">{{
-            getName(row.alliance_id, row.alliance_id ? `ID: ${row.alliance_id}` : '-')
-          }}</template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="recommended_amount"
-          :label="$t('srp.manage.columns.recommendedAmount')"
-          width="140"
-          align="right"
-        >
-          <template #default="{ row }">{{ formatISK(row.recommended_amount) }}</template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="final_amount"
-          :label="$t('srp.manage.columns.finalAmount')"
-          width="140"
-          align="right"
-        >
-          <template #default="{ row }"
-            ><span class="font-semibold text-blue-600">{{
-              formatISK(row.final_amount)
-            }}</span></template
-          >
-        </ElTableColumn>
-        <ElTableColumn
-          prop="review_status"
-          :label="$t('srp.manage.columns.review')"
-          width="100"
-          align="center"
-        >
-          <template #default="{ row }">
-            <ElTag :type="reviewStatusType(row.review_status)" size="small">{{
-              reviewStatusLabel(row.review_status)
-            }}</ElTag>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn
-          prop="payout_status"
-          :label="$t('srp.manage.columns.payout')"
-          width="100"
-          align="center"
-        >
-          <template #default="{ row }">
-            <ElTag :type="payoutStatusType(row.payout_status)" size="small">
-              {{ row.payout_status === 'paid' ? $t('srp.status.paid') : $t('srp.status.unpaid') }}
-            </ElTag>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn
-          :label="$t('srp.manage.columns.action')"
-          width="250"
-          fixed="right"
-          align="center"
-        >
-          <template #default="{ row }">
-            <ElButton size="small" type="info" link @click="openKmPreview(row)">
-              <el-icon><View /></el-icon>
-              {{ $t('srp.apply.previewKm') }}
-            </ElButton>
-            <template v-if="row.review_status === 'pending'">
-              <ElButton size="small" type="success" @click="openReviewDialog(row, 'approve')">{{
-                $t('srp.manage.approveBtn')
-              }}</ElButton>
-              <ElButton size="small" type="danger" @click="openReviewDialog(row, 'reject')">{{
-                $t('srp.manage.rejectBtn')
-              }}</ElButton>
-            </template>
-            <template
-              v-else-if="row.review_status === 'approved' && row.payout_status === 'pending'"
-            >
-              <ElButton size="small" type="primary" @click="openPayoutDialog(row)">{{
-                $t('srp.manage.payoutBtn')
-              }}</ElButton>
-            </template>
-          </template>
-        </ElTableColumn>
-      </ElTable>
-
-      <div v-if="pagination.total > 0" class="pagination-wrapper">
-        <ElPagination
-          v-model:current-page="pagination.current"
-          v-model:page-size="pagination.size"
-          :total="pagination.total"
-          :page-sizes="[10, 20, 50]"
-          layout="total, sizes, prev, pager, next, jumper"
-          background
-          @size-change="
-            () => {
-              pagination.current = 1
-              loadApplications()
-            }
-          "
-          @current-change="loadApplications"
-        />
-      </div>
+      <ArtTable
+        :loading="loading"
+        :data="data"
+        :columns="columns"
+        :pagination="pagination"
+        @pagination:size-change="handleSizeChange"
+        @pagination:current-change="handleCurrentChange"
+      />
     </ElCard>
 
     <ElDialog
@@ -281,14 +135,10 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n'
-  import { Refresh, View } from '@element-plus/icons-vue'
   import {
     ElCard,
-    ElTable,
-    ElTableColumn,
     ElTag,
     ElButton,
-    ElPagination,
     ElSelect,
     ElOption,
     ElDialog,
@@ -299,6 +149,8 @@
     ElLink,
     ElMessage
   } from 'element-plus'
+  import { useTable } from '@/hooks/core/useTable'
+  import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
   import KmPreviewDialog from '@/components/business/KmPreviewDialog.vue'
   import { fetchFleetList } from '@/api/fleet'
   import { fetchApplicationList, reviewApplication, payoutApplication } from '@/api/srp'
@@ -308,10 +160,6 @@
 
   const { t } = useI18n()
   const { getName, resolve: resolveNames } = useNameResolver()
-
-  const applications = ref<Api.Srp.Application[]>([])
-  const loading = ref(false)
-  const pagination = reactive({ current: 1, size: 20, total: 0 })
 
   const fleets = ref<Api.Fleet.FleetItem[]>([])
   const loadFleets = async () => {
@@ -325,25 +173,185 @@
 
   const filter = reactive({ review_status: '', payout_status: '', fleet_id: '' })
 
-  const loadApplications = async () => {
-    loading.value = true
-    try {
-      const res = await fetchApplicationList({
-        current: pagination.current,
-        size: pagination.size,
-        review_status: filter.review_status || undefined,
-        payout_status: filter.payout_status || undefined,
-        fleet_id: filter.fleet_id || undefined
-      })
-      applications.value = res?.records ?? []
-      pagination.total = res?.total ?? 0
-      if (applications.value.length) await resolveManageNames(applications.value)
-    } catch {
-      applications.value = []
-    } finally {
-      loading.value = false
+  type SrpApp = Api.Srp.Application
+  type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
+
+  const reviewStatusType = (s: string): TagType =>
+    (({ pending: 'info', approved: 'success', rejected: 'danger' }) as Record<string, TagType>)[
+      s
+    ] ?? 'info'
+  const reviewStatusLabel = (s: string) =>
+    ({
+      pending: t('srp.status.pending'),
+      approved: t('srp.status.approved'),
+      rejected: t('srp.status.rejected')
+    })[s as 'pending' | 'approved' | 'rejected'] ?? s
+  const payoutStatusType = (s: string): TagType => (s === 'paid' ? 'success' : 'warning')
+
+  const {
+    columns,
+    columnChecks,
+    data,
+    loading,
+    pagination,
+    handleSizeChange,
+    handleCurrentChange,
+    refreshData,
+    getData,
+    searchParams
+  } = useTable({
+    core: {
+      apiFn: fetchApplicationList,
+      apiParams: { current: 1, size: 20 },
+      columnsFactory: () => [
+        { type: 'index', width: 60, label: '#' },
+        {
+          prop: 'character_name',
+          label: t('srp.manage.columns.character'),
+          width: 150,
+          showOverflowTooltip: true
+        },
+        {
+          prop: 'ship_type_id',
+          label: t('srp.manage.columns.ship'),
+          width: 180,
+          showOverflowTooltip: true,
+          formatter: (row: SrpApp) =>
+            h('span', {}, getName(row.ship_type_id, `TypeID: ${row.ship_type_id}`))
+        },
+        {
+          prop: 'solar_system_id',
+          label: t('srp.manage.columns.system'),
+          width: 140,
+          showOverflowTooltip: true,
+          formatter: (row: SrpApp) =>
+            h('span', {}, getName(row.solar_system_id, String(row.solar_system_id)))
+        },
+        {
+          prop: 'killmail_id',
+          label: t('srp.manage.columns.killId'),
+          width: 110,
+          formatter: (row: SrpApp) =>
+            h(
+              ElLink,
+              {
+                href: `https://zkillboard.com/kill/${row.killmail_id}/`,
+                target: '_blank',
+                type: 'primary'
+              },
+              () => String(row.killmail_id)
+            )
+        },
+        {
+          prop: 'killmail_time',
+          label: t('srp.manage.columns.kmTime'),
+          width: 175,
+          formatter: (row: SrpApp) => h('span', {}, formatTime(row.killmail_time))
+        },
+        {
+          prop: 'corporation_id',
+          label: t('srp.manage.columns.corporation'),
+          width: 180,
+          showOverflowTooltip: true,
+          formatter: (row: SrpApp) =>
+            h(
+              'span',
+              {},
+              getName(row.corporation_id, row.corporation_id ? `ID: ${row.corporation_id}` : '-')
+            )
+        },
+        {
+          prop: 'alliance_id',
+          label: t('srp.manage.columns.alliance'),
+          width: 180,
+          showOverflowTooltip: true,
+          formatter: (row: SrpApp) =>
+            h(
+              'span',
+              {},
+              getName(row.alliance_id, row.alliance_id ? `ID: ${row.alliance_id}` : '-')
+            )
+        },
+        {
+          prop: 'recommended_amount',
+          label: t('srp.manage.columns.recommendedAmount'),
+          width: 140,
+          formatter: (row: SrpApp) => h('span', {}, formatISK(row.recommended_amount))
+        },
+        {
+          prop: 'final_amount',
+          label: t('srp.manage.columns.finalAmount'),
+          width: 140,
+          formatter: (row: SrpApp) =>
+            h('span', { class: 'font-semibold text-blue-600' }, formatISK(row.final_amount))
+        },
+        {
+          prop: 'review_status',
+          label: t('srp.manage.columns.review'),
+          width: 100,
+          formatter: (row: SrpApp) =>
+            h(ElTag, { type: reviewStatusType(row.review_status), size: 'small' }, () =>
+              reviewStatusLabel(row.review_status)
+            )
+        },
+        {
+          prop: 'payout_status',
+          label: t('srp.manage.columns.payout'),
+          width: 100,
+          formatter: (row: SrpApp) =>
+            h(ElTag, { type: payoutStatusType(row.payout_status), size: 'small' }, () =>
+              row.payout_status === 'paid' ? t('srp.status.paid') : t('srp.status.unpaid')
+            )
+        },
+        {
+          prop: 'actions',
+          label: t('srp.manage.columns.action'),
+          width: 220,
+          fixed: 'right',
+          formatter: (row: SrpApp) => {
+            const btns: ReturnType<typeof h>[] = [
+              h(ArtButtonTable, { type: 'view', onClick: () => openKmPreview(row) })
+            ]
+            if (row.review_status === 'pending') {
+              btns.push(
+                h(
+                  ElButton,
+                  {
+                    size: 'small',
+                    type: 'success',
+                    onClick: () => openReviewDialog(row, 'approve')
+                  },
+                  () => t('srp.manage.approveBtn')
+                ),
+                h(
+                  ElButton,
+                  {
+                    size: 'small',
+                    type: 'danger',
+                    onClick: () => openReviewDialog(row, 'reject')
+                  },
+                  () => t('srp.manage.rejectBtn')
+                )
+              )
+            } else if (row.review_status === 'approved' && row.payout_status === 'pending') {
+              btns.push(
+                h(
+                  ElButton,
+                  { size: 'small', type: 'primary', onClick: () => openPayoutDialog(row) },
+                  () => t('srp.manage.payoutBtn')
+                )
+              )
+            }
+            return h('div', { class: 'flex gap-1' }, btns)
+          }
+        }
+      ]
     }
-  }
+  })
+
+  watch(data, async (list) => {
+    if (list.length) await resolveManageNames(list)
+  })
 
   /** 收集申请列表中所有需要解析的 ID，一次性查询 */
   const resolveManageNames = async (list: Api.Srp.Application[]) => {
@@ -366,14 +374,23 @@
   }
 
   const handleSearch = () => {
-    pagination.current = 1
-    loadApplications()
+    Object.assign(searchParams, {
+      review_status: filter.review_status || undefined,
+      payout_status: filter.payout_status || undefined,
+      fleet_id: filter.fleet_id || undefined
+    })
+    getData()
   }
   const resetFilter = () => {
     filter.review_status = ''
     filter.payout_status = ''
     filter.fleet_id = ''
-    handleSearch()
+    Object.assign(searchParams, {
+      review_status: undefined,
+      payout_status: undefined,
+      fleet_id: undefined
+    })
+    getData()
   }
 
   const reviewDialogVisible = ref(false)
@@ -409,7 +426,7 @@
           : t('srp.manage.rejectSuccess')
       )
       reviewDialogVisible.value = false
-      loadApplications()
+      refreshData()
     } catch {
       /* handled */
     } finally {
@@ -434,7 +451,7 @@
       await payoutApplication(payoutTarget.value.id, { final_amount: payoutOverrideAmount.value })
       ElMessage.success(t('srp.manage.payoutSuccess'))
       payoutDialogVisible.value = false
-      loadApplications()
+      refreshData()
     } catch {
       /* handled */
     } finally {
@@ -448,19 +465,6 @@
       v ?? 0
     )
 
-  type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
-  const reviewStatusType = (s: string): TagType =>
-    (({ pending: 'info', approved: 'success', rejected: 'danger' }) as Record<string, TagType>)[
-      s
-    ] ?? 'info'
-  const reviewStatusLabel = (s: string) =>
-    ({
-      pending: t('srp.status.pending'),
-      approved: t('srp.status.approved'),
-      rejected: t('srp.status.rejected')
-    })[s as 'pending' | 'approved' | 'rejected'] ?? s
-  const payoutStatusType = (s: string): TagType => (s === 'paid' ? 'success' : 'warning')
-
   /* ── KM 预览 ── */
   const kmPreviewVisible = ref(false)
   const previewKillmailId = ref(0)
@@ -471,14 +475,7 @@
 
   onMounted(() => {
     loadFleets()
-    loadApplications()
   })
 </script>
 
-<style scoped>
-  .pagination-wrapper {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-  }
-</style>
+<style scoped></style>

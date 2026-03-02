@@ -27,6 +27,7 @@ func RegisterRoutes(r *gin.Engine) {
 		sde.GET("/version", sdeH.GetVersion)
 		sde.POST("/types", sdeH.GetTypes)
 		sde.POST("/names", sdeH.GetNames)
+		sde.POST("/search", sdeH.FuzzySearch)
 	}
 
 	// ─── 需要登录 ───

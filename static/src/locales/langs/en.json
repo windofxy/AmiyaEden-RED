@@ -316,7 +316,8 @@
     "allSkills": "All Skills",
     "unallocatedSPSuffix": " unallocated skill points.",
     "totalTrainingTime": "Training Time",
-    "queuedSPSuffix": " skill points in queue"
+    "queuedSPSuffix": " skill points in queue",
+    "journalIndex": "ID"
   },
   "shop": {
     "products": "Products",
@@ -426,7 +427,9 @@
       "balance": "Balance",
       "transactions": "Transactions",
       "amount": "Amount",
+      "balanceAfter": "Balance After",
       "reason": "Reason",
+      "refType": "Type",
       "time": "Time",
       "empty": "No transactions"
     }
@@ -463,13 +466,18 @@
       "fleetInfo": "Fleet Info",
       "otherAction": "Other Action (contact SRP officer or FC first)",
       "fleetNotePlaceholder": "Enter fleet details here.",
+      "fleetDetailTitle": "Fleet Details",
+      "fleetDetailFC": "FC",
+      "fleetDetailTime": "Time",
+      "fleetDetailImportance": "Importance",
+      "fleetDetailDesc": "Description",
       "killmail": "KillMail",
       "selectKillmail": "Select a KillMail",
       "previewKm": "Preview KM",
       "kmPreviewTitle": "KM Details Preview",
       "openZkillboard": "View on zKillboard",
       "loadingKm": "Loading KMs...",
-      "noKmHint": "Select a character to load KMs",
+      "noKmHint": "Loading KMs...",
       "recommendedAmount": "Recommended Amount",
       "finalAmount": "Requested Amount",
       "finalAmountHint": "Enter 0 to use the recommended amount",
@@ -569,7 +577,8 @@
       "validName": "Please enter a ship name",
       "validAmount": "Amount cannot be negative",
       "fields": {
-        "typeId": "Ship TypeID",
+        "ship": "Ship",
+        "shipPlaceholder": "Search ship name",
         "name": "Ship Name",
         "namePlaceholder": "Ship name (CN or EN)",
         "amount": "SRP Amount (ISK)"
@@ -588,6 +597,13 @@
       "rejected": "Rejected",
       "paid": "Paid",
       "unpaid": "Pending Payout"
+    }
+  },
+  "sde": {
+    "search": {
+      "placeholder": "Type to search",
+      "noResult": "No results",
+      "loading": "Searching…"
     }
   },
   "table": {

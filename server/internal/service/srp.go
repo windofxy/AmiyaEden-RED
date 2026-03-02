@@ -304,6 +304,7 @@ type FleetKillmailItem struct {
 	KillmailTime  time.Time `json:"killmail_time"`
 	ShipTypeID    int64     `json:"ship_type_id"`
 	SolarSystemID int64     `json:"solar_system_id"`
+	CharacterID   int64     `json:"character_id"`
 	VictimName    string    `json:"victim_name"`
 }
 
@@ -349,8 +350,11 @@ func (s *SrpService) GetMyKillmails(userID uint, characterID int64) ([]FleetKill
 		kmCharMap[ckm.KillmailID] = ckm.CharacterID
 	}
 
+	// 只查询最近 30 天的 KM
+	since := time.Now().AddDate(0, 0, -30)
+
 	var kms []model.EveKillmailList
-	if err := global.DB.Where("kill_mail_id IN ?", kmIDs).
+	if err := global.DB.Where("kill_mail_id IN ? AND kill_mail_time >= ?", kmIDs, since).
 		Order("kill_mail_time DESC").
 		Limit(200).
 		Find(&kms).Error; err != nil {
@@ -373,6 +377,7 @@ func (s *SrpService) GetMyKillmails(userID uint, characterID int64) ([]FleetKill
 			KillmailTime:  km.KillmailTime,
 			ShipTypeID:    km.ShipTypeID,
 			SolarSystemID: km.SolarSystemID,
+			CharacterID:   km.CharacterID,
 			VictimName:    charNameMap[km.CharacterID],
 		})
 	}
@@ -449,6 +454,7 @@ func (s *SrpService) GetFleetKillmails(userID uint, fleetID string) ([]FleetKill
 			KillmailTime:  km.KillmailTime,
 			ShipTypeID:    km.ShipTypeID,
 			SolarSystemID: km.SolarSystemID,
+			CharacterID:   km.CharacterID,
 			VictimName:    name,
 		})
 	}

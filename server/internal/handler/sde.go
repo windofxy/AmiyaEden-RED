@@ -137,3 +137,44 @@ func (h *SdeHandler) GetNames(c *gin.Context) {
 
 	response.OK(c, result)
 }
+
+// FuzzySearch godoc
+// POST /api/v1/sde/search
+// 模糊搜索物品/成员名称
+type FuzzySearchRequest struct {
+	Keyword            string `json:"keyword" binding:"required"`
+	Language           string `json:"language"`
+	CategoryIDs        []int  `json:"category_ids"`
+	ExcludeCategoryIDs []int  `json:"exclude_category_ids"`
+	Limit              int    `json:"limit"`
+	SearchMember       bool   `json:"search_member"`
+}
+
+func (h *SdeHandler) FuzzySearch(c *gin.Context) {
+	var req FuzzySearchRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, response.CodeParamError, "参数错误: "+err.Error())
+		return
+	}
+	if req.Language == "" {
+		req.Language = c.GetHeader("Accept-Language")
+	}
+	if req.Language == "" {
+		if lang, err := c.Cookie("language"); err == nil && lang != "" {
+			req.Language = lang
+		}
+	}
+	if req.Language == "" {
+		req.Language = "en"
+	}
+	if req.Limit <= 0 {
+		req.Limit = 20
+	}
+
+	list, err := h.svc.FuzzySearch(req.Keyword, req.Language, req.CategoryIDs, req.ExcludeCategoryIDs, req.Limit, req.SearchMember)
+	if err != nil {
+		response.Fail(c, response.CodeBizError, "查询失败: "+err.Error())
+		return
+	}
+	response.OK(c, list)
+}

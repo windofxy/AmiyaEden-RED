@@ -2,63 +2,57 @@
 <template>
   <div class="srp-prices-page art-full-height">
     <ElCard class="art-table-card" shadow="never">
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-medium">{{ $t('srp.prices.title') }}</h2>
-          <div class="flex gap-2">
-            <ElInput v-model="keyword" :placeholder="$t('srp.prices.searchPlaceholder')" clearable style="width: 200px"
-              @keyup.enter="loadPrices" @clear="loadPrices" />
-            <ElButton :loading="loading" @click="loadPrices">
-              <el-icon class="mr-1"><Refresh /></el-icon>
-              {{ $t('srp.prices.refresh') }}
-            </ElButton>
-            <ElButton type="primary" @click="openAddDialog">
-              <el-icon class="mr-1"><Plus /></el-icon>
-              {{ $t('srp.prices.addPrice') }}
-            </ElButton>
-          </div>
-        </div>
-      </template>
+      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="loadPrices">
+        <template #left>
+          <ElInput
+            v-model="keyword"
+            :placeholder="$t('srp.prices.searchPlaceholder')"
+            clearable
+            style="width: 200px"
+            @keyup.enter="loadPrices"
+            @clear="loadPrices"
+          />
+          <ElButton type="primary" :icon="Plus" @click="openAddDialog">
+            {{ $t('srp.prices.addPrice') }}
+          </ElButton>
+        </template>
+      </ArtTableHeader>
 
-      <ElTable v-loading="loading" :data="prices" stripe border style="width: 100%">
-        <ElTableColumn prop="ship_type_id" :label="$t('srp.prices.columns.typeId')" width="110" align="center" />
-        <ElTableColumn prop="ship_name" :label="$t('srp.prices.columns.name')" min-width="200" />
-        <ElTableColumn prop="amount" :label="$t('srp.prices.columns.amount')" width="200" align="right">
-          <template #default="{ row }">
-            <span class="font-medium text-blue-600">{{ formatISK(row.amount) }} ISK</span>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn prop="updated_at" :label="$t('srp.prices.columns.updatedAt')" width="200">
-          <template #default="{ row }">{{ formatTime(row.updated_at) }}</template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('srp.prices.columns.action')" width="150" align="center" fixed="right">
-          <template #default="{ row }">
-            <ElButton size="small" type="primary" link @click="openEditDialog(row)">{{ $t('srp.prices.editBtn') }}</ElButton>
-            <ElPopconfirm :title="$t('srp.prices.deleteConfirm')" @confirm="handleDelete(row.id)">
-              <template #reference>
-                <ElButton size="small" type="danger" link>{{ $t('srp.prices.deleteBtn') }}</ElButton>
-              </template>
-            </ElPopconfirm>
-          </template>
-        </ElTableColumn>
-      </ElTable>
+      <ArtTable :loading="loading" :data="prices" :columns="columns" />
     </ElCard>
 
-    <ElDialog v-model="dialogVisible" :title="editTarget ? $t('srp.prices.editDialog') : $t('srp.prices.addDialog')" width="460px">
+    <ElDialog
+      v-model="dialogVisible"
+      :title="editTarget ? $t('srp.prices.editDialog') : $t('srp.prices.addDialog')"
+      width="460px"
+      destroy-on-close
+    >
       <ElForm ref="formRef" :model="form" :rules="rules" label-width="130px">
-        <ElFormItem :label="$t('srp.prices.fields.typeId')" prop="ship_type_id">
-          <ElInputNumber v-model="form.ship_type_id" :min="1" style="width: 100%" />
-        </ElFormItem>
-        <ElFormItem :label="$t('srp.prices.fields.name')" prop="ship_name">
-          <ElInput v-model="form.ship_name" :placeholder="$t('srp.prices.fields.namePlaceholder')" />
+        <ElFormItem :label="$t('srp.prices.fields.ship')" prop="ship_type_id">
+          <SdeSearchSelect
+            v-model="form.ship_type_id"
+            :category-ids="[6]"
+            :initial-options="dialogInitialOptions"
+            :placeholder="$t('srp.prices.fields.namePlaceholder')"
+            style="width: 100%"
+            @select="onShipSelect"
+          />
         </ElFormItem>
         <ElFormItem :label="$t('srp.prices.fields.amount')" prop="amount">
-          <ElInputNumber v-model="form.amount" :min="0" :precision="2" :step="10000000" style="width: 100%" />
+          <ElInputNumber
+            v-model="form.amount"
+            :min="0"
+            :precision="2"
+            :step="10000000"
+            style="width: 100%"
+          />
         </ElFormItem>
       </ElForm>
       <template #footer>
         <ElButton @click="dialogVisible = false">{{ $t('srp.prices.cancelBtn') }}</ElButton>
-        <ElButton type="primary" :loading="saving" @click="handleSave">{{ $t('srp.prices.saveBtn') }}</ElButton>
+        <ElButton type="primary" :loading="saving" @click="handleSave">{{
+          $t('srp.prices.saveBtn')
+        }}</ElButton>
       </template>
     </ElDialog>
   </div>
@@ -66,18 +60,80 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n'
-  import { Plus, Refresh } from '@element-plus/icons-vue'
+  import { Plus } from '@element-plus/icons-vue'
   import {
-    ElCard, ElTable, ElTableColumn, ElButton, ElInput, ElInputNumber,
-    ElDialog, ElForm, ElFormItem, ElPopconfirm, ElMessage, type FormInstance, type FormRules
+    ElCard,
+    ElButton,
+    ElInput,
+    ElInputNumber,
+    ElDialog,
+    ElForm,
+    ElFormItem,
+    ElMessage,
+    ElMessageBox,
+    type FormInstance,
+    type FormRules
   } from 'element-plus'
+  import { useTableColumns } from '@/hooks/core/useTableColumns'
+  import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
   import { fetchShipPrices, upsertShipPrice, deleteShipPrice } from '@/api/srp'
+  import SdeSearchSelect from '@/components/business/SdeSearchSelect.vue'
 
   defineOptions({ name: 'SrpPrices' })
 
   const { t } = useI18n()
 
-  const prices = ref<Api.Srp.ShipPrice[]>([])
+  type ShipPrice = Api.Srp.ShipPrice
+
+  // ─── 格式化 ───
+  const formatTime = (v: string) => (v ? new Date(v).toLocaleString() : '-')
+  const formatISK = (v: number) =>
+    new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
+      v ?? 0
+    )
+
+  // ─── 列配置 ───
+  const { columns, columnChecks } = useTableColumns<ShipPrice>(() => [
+    { type: 'index', width: 60, label: '#' },
+    {
+      prop: 'ship_type_id',
+      label: t('srp.prices.columns.typeId'),
+      width: 110
+    },
+    {
+      prop: 'ship_name',
+      label: t('srp.prices.columns.name'),
+      minWidth: 200,
+      showOverflowTooltip: true
+    },
+    {
+      prop: 'amount',
+      label: t('srp.prices.columns.amount'),
+      width: 200,
+      formatter: (row: ShipPrice) =>
+        h('span', { class: 'font-medium text-blue-600' }, `${formatISK(row.amount)} ISK`)
+    },
+    {
+      prop: 'updated_at',
+      label: t('srp.prices.columns.updatedAt'),
+      width: 180,
+      formatter: (row: ShipPrice) => h('span', {}, formatTime(row.updated_at))
+    },
+    {
+      prop: 'actions',
+      label: t('srp.prices.columns.action'),
+      width: 120,
+      fixed: 'right',
+      formatter: (row: ShipPrice) =>
+        h('div', { class: 'flex gap-1' }, [
+          h(ArtButtonTable, { type: 'edit', onClick: () => openEditDialog(row) }),
+          h(ArtButtonTable, { type: 'delete', onClick: () => handleDelete(row) })
+        ])
+    }
+  ])
+
+  // ─── 数据 ───
+  const prices = ref<ShipPrice[]>([])
   const loading = ref(false)
   const keyword = ref('')
 
@@ -86,32 +142,69 @@
     try {
       const list = await fetchShipPrices(keyword.value || undefined)
       prices.value = list ?? []
-    } catch { prices.value = [] }
-    finally { loading.value = false }
+    } catch {
+      prices.value = []
+    } finally {
+      loading.value = false
+    }
   }
 
+  // ─── 新增 / 编辑 ───
   const dialogVisible = ref(false)
   const saving = ref(false)
   const formRef = ref<FormInstance>()
-  const editTarget = ref<Api.Srp.ShipPrice | null>(null)
+  const editTarget = ref<ShipPrice | null>(null)
+  const dialogInitialOptions = ref<Api.Sde.FuzzySearchItem[]>([])
 
-  const form = reactive({ id: 0, ship_type_id: 0, ship_name: '', amount: 0 })
+  const form = reactive({ id: 0, ship_type_id: 0 as number | null, ship_name: '', amount: 0 })
+
+  function onShipSelect(item: Api.Sde.FuzzySearchItem | null) {
+    if (item) {
+      form.ship_type_id = item.id
+      form.ship_name = item.name
+    } else {
+      form.ship_type_id = null
+      form.ship_name = ''
+    }
+  }
 
   const rules: FormRules = {
-    ship_type_id: [{ required: true, validator: (_r, v, cb) => v > 0 ? cb() : cb(new Error(t('srp.prices.validTypeId'))), trigger: 'change' }],
+    ship_type_id: [
+      {
+        required: true,
+        validator: (_r, v, cb) => (v && v > 0 ? cb() : cb(new Error(t('srp.prices.validTypeId')))),
+        trigger: 'change'
+      }
+    ],
     ship_name: [{ required: true, message: t('srp.prices.validName'), trigger: 'blur' }],
-    amount: [{ required: true, validator: (_r, v, cb) => v >= 0 ? cb() : cb(new Error(t('srp.prices.validAmount'))), trigger: 'change' }],
+    amount: [
+      {
+        required: true,
+        validator: (_r, v, cb) => (v >= 0 ? cb() : cb(new Error(t('srp.prices.validAmount')))),
+        trigger: 'change'
+      }
+    ]
   }
 
   const openAddDialog = () => {
     editTarget.value = null
-    form.id = 0; form.ship_type_id = 0; form.ship_name = ''; form.amount = 0
+    form.id = 0
+    form.ship_type_id = null
+    form.ship_name = ''
+    form.amount = 0
+    dialogInitialOptions.value = []
     dialogVisible.value = true
   }
 
-  const openEditDialog = (row: Api.Srp.ShipPrice) => {
+  const openEditDialog = (row: ShipPrice) => {
     editTarget.value = row
-    form.id = row.id; form.ship_type_id = row.ship_type_id; form.ship_name = row.ship_name; form.amount = row.amount
+    form.id = row.id
+    form.ship_type_id = row.ship_type_id
+    form.ship_name = row.ship_name
+    form.amount = row.amount
+    dialogInitialOptions.value = [
+      { id: row.ship_type_id, name: row.ship_name, group_id: 0, group_name: '', category: 'type' }
+    ]
     dialogVisible.value = true
   }
 
@@ -119,25 +212,34 @@
     await formRef.value?.validate()
     saving.value = true
     try {
-      await upsertShipPrice({ ...form })
-      ElMessage.success(editTarget.value ? t('srp.prices.updateSuccess') : t('srp.prices.addSuccess'))
+      await upsertShipPrice({ ...form, ship_type_id: form.ship_type_id! })
+      ElMessage.success(
+        editTarget.value ? t('srp.prices.updateSuccess') : t('srp.prices.addSuccess')
+      )
       dialogVisible.value = false
       loadPrices()
-    } catch { /* handled */ }
-    finally { saving.value = false }
+    } catch {
+      /* handled */
+    } finally {
+      saving.value = false
+    }
   }
 
-  const handleDelete = async (id: number) => {
+  // ─── 删除 ───
+  const handleDelete = async (row: ShipPrice) => {
+    await ElMessageBox.confirm(t('srp.prices.deleteConfirm'), t('common.confirm'), {
+      confirmButtonText: t('srp.prices.deleteBtn'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
     try {
-      await deleteShipPrice(id)
+      await deleteShipPrice(row.id)
       ElMessage.success(t('srp.prices.deleteSuccess'))
       loadPrices()
-    } catch { /* handled */ }
+    } catch {
+      /* handled */
+    }
   }
-
-  const formatTime = (v: string) => v ? new Date(v).toLocaleString() : '-'
-  const formatISK = (v: number) =>
-    new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v ?? 0)
 
   onMounted(loadPrices)
 </script>

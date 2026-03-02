@@ -151,6 +151,75 @@ type FlagInfo struct {
 	OrderID  int    `json:"order_id"  gorm:"column:orderID"`
 }
 
+// FuzzySearchItem 模糊搜索结果条目
+type FuzzySearchItem struct {
+	ID        int    `json:"id"         gorm:"column:id"`
+	Name      string `json:"name"       gorm:"column:name"`
+	GroupID   int    `json:"group_id"   gorm:"column:group_id"`
+	GroupName string `json:"group_name" gorm:"column:group_name"`
+	Category  string `json:"category"   gorm:"column:category"` // "type" | "character"
+}
+
+// FuzzySearch 模糊搜索 trnTranslations（物品名称）及成员名称
+func (r *SdeRepository) FuzzySearch(keyword string, languageID string, categoryIDs []int, excludeCategoryIDs []int, limit int, searchMember bool) ([]FuzzySearchItem, error) {
+	if keyword == "" {
+		return nil, nil
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+	if languageID == "" {
+		languageID = "en"
+	}
+
+	var result []FuzzySearchItem
+	pattern := "%" + keyword + "%"
+
+	// 1. 搜索 SDE 物品名称（通过 trnTranslations 的 type 翻译）
+	query := global.DB.Table(`"trnTranslations" tr`).
+		Select(`
+			t."typeID"   AS id,
+			tr.text      AS name,
+			g."groupID"  AS group_id,
+			g_name.text  AS group_name,
+			'type'       AS category
+		`).
+		Joins(`JOIN "invTypes" t ON t."typeID" = tr."keyID" AND t.published = 1`).
+		Joins(`JOIN "invGroups" g ON g."groupID" = t."groupID"`).
+		Joins(`JOIN "invCategories" c ON c."categoryID" = g."categoryID"`).
+		Joins(`LEFT JOIN "trnTranslations" g_name ON g_name."tcID" = ? AND g_name."keyID" = g."groupID" AND g_name."languageID" = ?`,
+			TC_ID["group"], languageID).
+		Where(`tr."tcID" = ? AND tr."languageID" = ? AND tr.text ILIKE ?`, TC_ID["type"], languageID, pattern)
+
+	if len(categoryIDs) > 0 {
+		query = query.Where(`c."categoryID" IN ?`, categoryIDs)
+	}
+	if len(excludeCategoryIDs) > 0 {
+		query = query.Where(`c."categoryID" NOT IN ?`, excludeCategoryIDs)
+	}
+
+	query = query.Limit(limit)
+	if err := query.Scan(&result).Error; err != nil {
+		return nil, err
+	}
+
+	// 2. 搜索成员名称（eve_character 表）
+	if searchMember && limit > len(result) {
+		remaining := limit - len(result)
+		var members []FuzzySearchItem
+		if err := global.DB.Table("eve_character").
+			Select(`character_id AS id, character_name AS name, 0 AS group_id, '' AS group_name, 'character' AS category`).
+			Where("character_name ILIKE ?", pattern).
+			Limit(remaining).
+			Scan(&members).Error; err != nil {
+			return nil, err
+		}
+		result = append(result, members...)
+	}
+
+	return result, nil
+}
+
 // GetFlags 批量查询 invFlags
 func (r *SdeRepository) GetFlags(flagIDs []int) ([]FlagInfo, error) {
 	var result []FlagInfo
