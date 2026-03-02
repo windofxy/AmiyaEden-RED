@@ -41,7 +41,7 @@ func (t *ClonesTask) RequiredScopes() []TaskScope {
 	return []TaskScope{
 		{Scope: "esi-clones.read_clones.v1", Description: "读取克隆体信息"},
 		{Scope: "esi-clones.read_implants.v1", Description: "读取植入体信息"},
-		{Scope: " esi-characters.read_fatigue.v1", Description: "读取跳跃疲劳信息"},
+		{Scope: "esi-characters.read_fatigue.v1", Description: "读取跳跃疲劳信息"},
 	}
 }
 
