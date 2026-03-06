@@ -17,6 +17,12 @@ export const infoRoutes: AppRouteRecord = {
       name: 'EveInfoSkill',
       component: '/info/skill',
       meta: { title: 'menus.info.skill', keepAlive: true }
+    },
+    {
+      path: 'npc-kills',
+      name: 'NpcKillReport',
+      component: '/info/npc-kills',
+      meta: { title: 'menus.info.npcKills', keepAlive: true }
     }
   ]
 }

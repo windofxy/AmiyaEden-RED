@@ -107,6 +107,11 @@ func RegisterRoutes(r *gin.Engine) {
 		info.POST("/skills", infoH.GetCharacterSkills)
 	}
 
+	// ─── NPC 刷怪报表 ───
+	npcKillH := handler.NewNpcKillHandler()
+	info.POST("/npc-kills", npcKillH.GetNpcKills)
+	info.POST("/npc-kills/all", npcKillH.GetAllNpcKills)
+
 	// ─── 系统钱包（用户端）───
 	walletH := handler.NewSysWalletHandler()
 	wallet := operation.Group("/wallet")
@@ -166,6 +171,9 @@ func RegisterRoutes(r *gin.Engine) {
 
 	// ─── 系统管理（需要 admin 角色）───
 	admin := auth.Group("/system", middleware.RequireRole(model.RoleAdmin))
+
+	// NPC 刷怪报表（管理员 — 公司级）
+	admin.POST("/npc-kills", npcKillH.GetCorpNpcKills)
 
 	// 联盟 PAP 管理（管理员）
 	alliancePAPAdminH := handler.NewAlliancePAPHandler()

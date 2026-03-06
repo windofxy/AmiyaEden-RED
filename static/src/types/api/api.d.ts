@@ -947,4 +947,113 @@ declare namespace Api {
       category: string // "type" | "character"
     }
   }
+
+  /** NPC 刷怪报表类型 */
+  namespace NpcKill {
+    /** 个人刷怪报表请求 */
+    interface NpcKillRequest {
+      character_id: number
+      start_date?: string
+      end_date?: string
+      language?: string
+      page?: number
+      page_size?: number
+    }
+
+    /** 个人刷怪报表请求（所有角色汇总） */
+    interface NpcKillAllRequest {
+      start_date?: string
+      end_date?: string
+      language?: string
+      page?: number
+      page_size?: number
+    }
+
+    /** 公司刷怪报表请求（管理员） */
+    interface NpcKillCorpRequest {
+      start_date?: string
+      end_date?: string
+      language?: string
+      page?: number
+      page_size?: number
+    }
+
+    /** 总览统计 */
+    interface Summary {
+      total_bounty: number
+      total_ess: number
+      total_tax: number
+      actual_income: number
+      total_records: number
+      estimated_hours: number
+    }
+
+    /** 按 NPC 分类统计 */
+    interface ByNpc {
+      npc_id: number
+      npc_name: string
+      count: number
+      amount: number
+    }
+
+    /** 按地点分类统计 */
+    interface BySystem {
+      solar_system_id: number
+      solar_system_name: string
+      count: number
+      amount: number
+    }
+
+    /** 时间趋势 */
+    interface Trend {
+      date: string
+      amount: number
+      count: number
+    }
+
+    /** 刷怪流水条目 */
+    interface JournalItem {
+      id: number
+      character_id: number
+      character_name: string
+      amount: number
+      tax: number
+      date: string
+      ref_type: string
+      solar_system_id: number
+      solar_system_name: string
+      reason: string
+    }
+
+    /** 个人刷怪报表响应 */
+    interface NpcKillResponse {
+      summary: Summary
+      by_npc: ByNpc[]
+      by_system: BySystem[]
+      trend: Trend[]
+      journals: JournalItem[]
+      total: number
+      page: number
+      page_size: number
+    }
+
+    /** 公司成员刷怪统计 */
+    interface CorpMemberSummary {
+      character_id: number
+      character_name: string
+      total_bounty: number
+      total_ess: number
+      total_tax: number
+      actual_income: number
+      record_count: number
+    }
+
+    /** 公司刷怪报表响应 */
+    interface NpcKillCorpResponse {
+      summary: Summary
+      members: CorpMemberSummary[]
+      by_system: BySystem[]
+      trend: Trend[]
+    }
+  }
 }

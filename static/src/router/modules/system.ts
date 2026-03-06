@@ -75,6 +75,16 @@ export const systemRoutes: AppRouteRecord = {
         keepAlive: true,
         roles: ['super_admin', 'admin']
       }
+    },
+    {
+      path: 'npc-kills',
+      name: 'CorpNpcKillReport',
+      component: '/system/npc-kills',
+      meta: {
+        title: 'menus.system.npcKills',
+        keepAlive: true,
+        roles: ['super_admin', 'admin']
+      }
     }
   ]
 }

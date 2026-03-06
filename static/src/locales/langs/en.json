@@ -246,7 +246,8 @@
       "menu": "Menu Manage",
       "esiRefresh": "Scheduled Tasks",
       "wallet": "Wallet Management",
-      "alliancePap": "Alliance PAP"
+      "alliancePap": "Alliance PAP",
+      "npcKills": "NPC Kill Report"
     },
     "shop": {
       "title": "Shop",
@@ -283,7 +284,8 @@
     "info": {
       "title": "EVE Character Info",
       "wallet": "Wallet Journal",
-      "skill": "Skill List"
+      "skill": "Skill List",
+      "npcKills": "NPC Kills"
     }
   },
   "info": {
@@ -318,6 +320,48 @@
     "totalTrainingTime": "Training Time",
     "queuedSPSuffix": " skill points in queue",
     "journalIndex": "ID"
+  },
+  "npcKill": {
+    "title": "NPC Kill Report",
+    "corpTitle": "Corp NPC Kill Report",
+    "selectCharacter": "Select Character",
+    "selectCharacterPlaceholder": "Choose a character",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "search": "Search",
+    "reset": "Reset",
+    "summary": "Summary",
+    "totalBounty": "Total Bounty",
+    "totalESS": "ESS Income",
+    "totalTax": "Total Tax",
+    "actualIncome": "Actual Income",
+    "totalRecords": "Total Records",
+    "estimatedHours": "Est. Hours",
+    "byNpc": "By NPC",
+    "npcName": "NPC Name",
+    "npcCount": "Kill Count",
+    "bySystem": "By Location",
+    "solarSystem": "Solar System",
+    "systemCount": "Records",
+    "systemAmount": "Bounty",
+    "trend": "Time Trend",
+    "trendDate": "Date",
+    "trendAmount": "Bounty",
+    "trendCount": "Records",
+    "journals": "Journal Details",
+    "journalDate": "Date",
+    "journalAmount": "Amount",
+    "journalTax": "Tax",
+    "journalRefType": "Type",
+    "journalSystem": "System",
+    "journalReason": "Reason",
+    "characterName": "Character",
+    "allCharacters": "All Characters",
+    "noData": "No NPC kill data",
+    "members": "Member Stats",
+    "recordCount": "Records",
+    "bountyPrizes": "Bounty",
+    "essTransfer": "ESS"
   },
   "shop": {
     "products": "Products",
