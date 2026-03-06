@@ -547,6 +547,10 @@ declare namespace Api {
       paid_at: string | null
       created_at: string
       updated_at: string
+      /** 关联舰队标题（后端填充） */
+      fleet_title?: string
+      /** 关联舰队 FC 角色名（后端填充） */
+      fleet_fc_name?: string
     }
 
     /** 申请列表分页响应 */

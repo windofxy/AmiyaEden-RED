@@ -617,6 +617,8 @@
         "kmTime": "KM 时间",
         "corporation": "军团",
         "alliance": "联盟",
+        "fleet": "关联舰队",
+        "note": "备注",
         "recommendedAmount": "推荐金额",
         "finalAmount": "最终金额",
         "review": "审批",

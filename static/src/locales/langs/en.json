@@ -605,6 +605,8 @@
         "kmTime": "KM Time",
         "corporation": "Corporation",
         "alliance": "Alliance",
+        "fleet": "Fleet",
+        "note": "Note",
         "recommendedAmount": "Recommended",
         "finalAmount": "Final Amount",
         "review": "Review",

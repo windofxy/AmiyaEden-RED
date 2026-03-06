@@ -72,6 +72,18 @@
       width="460px"
     >
       <ElForm label-width="90px">
+        <!-- 申请备注 & 舰队信息（审批前可见） -->
+        <template v-if="reviewTarget">
+          <ElFormItem :label="$t('srp.manage.columns.note')" v-if="reviewTarget.note">
+            <span class="text-sm">{{ reviewTarget.note }}</span>
+          </ElFormItem>
+          <ElFormItem :label="$t('srp.manage.columns.fleet')" v-if="reviewTarget.fleet_id">
+            <div>
+              <span class="font-medium">{{ reviewTarget.fleet_title || reviewTarget.fleet_id }}</span>
+              <span v-if="reviewTarget.fleet_fc_name" class="text-gray-400 ml-2 text-xs">FC: {{ reviewTarget.fleet_fc_name }}</span>
+            </div>
+          </ElFormItem>
+        </template>
         <ElFormItem :label="$t('srp.manage.finalAmount')" v-if="reviewAction === 'approve'">
           <ElInputNumber
             v-model="reviewForm.final_amount"
@@ -332,6 +344,33 @@
               {},
               getName(row.alliance_id, row.alliance_id ? `ID: ${row.alliance_id}` : '-')
             )
+        },
+        {
+          prop: 'fleet_title',
+          label: t('srp.manage.columns.fleet'),
+          width: 180,
+          showOverflowTooltip: true,
+          formatter: (row: SrpApp) => {
+            if (!row.fleet_id) return h('span', { class: 'text-gray-400' }, '-')
+            const parts: ReturnType<typeof h>[] = []
+            if (row.fleet_title) {
+              parts.push(h('div', { class: 'font-medium' }, row.fleet_title))
+            }
+            if (row.fleet_fc_name) {
+              parts.push(
+                h('div', { class: 'text-xs text-gray-400' }, `FC: ${row.fleet_fc_name}`)
+              )
+            }
+            return parts.length ? h('div', {}, parts) : h('span', {}, row.fleet_id)
+          }
+        },
+        {
+          prop: 'note',
+          label: t('srp.manage.columns.note'),
+          width: 180,
+          showOverflowTooltip: true,
+          formatter: (row: SrpApp) =>
+            h('span', { class: row.note ? '' : 'text-gray-400' }, row.note || '-')
         },
         {
           prop: 'recommended_amount',
@@ -601,6 +640,9 @@
     killmail_time: 'KM时间',
     corporation: '军团',
     alliance: '联盟',
+    fleet_title: '关联舰队',
+    fleet_fc_name: 'FC',
+    note: '备注',
     recommended_amount: '推荐金额',
     final_amount: '最终金额',
     review_status: '审批状态',
@@ -618,6 +660,9 @@
         app.corporation_id ? `ID: ${app.corporation_id}` : '-'
       ),
       alliance: getName(app.alliance_id, app.alliance_id ? `ID: ${app.alliance_id}` : '-'),
+      fleet_title: app.fleet_title || '-',
+      fleet_fc_name: app.fleet_fc_name || '-',
+      note: app.note || '-',
       recommended_amount: app.recommended_amount,
       final_amount: app.final_amount,
       review_status: reviewStatusLabel(app.review_status),
