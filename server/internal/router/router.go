@@ -260,4 +260,24 @@ func RegisterRoutes(r *gin.Engine) {
 	{
 		adminShopRedeem.POST("/list", adminShopH.AdminListRedeemCodes)
 	}
+
+	// 自动权限映射管理（管理员）
+	autoRoleH := handler.NewAutoRoleHandler()
+	adminAutoRole := admin.Group("/auto-role")
+	{
+		// ESI 军团角色映射
+		adminAutoRole.GET("/esi-roles", autoRoleH.GetAllEsiRoles)
+		adminAutoRole.GET("/esi-role-mappings", autoRoleH.ListEsiRoleMappings)
+		adminAutoRole.POST("/esi-role-mappings", autoRoleH.CreateEsiRoleMapping)
+		adminAutoRole.DELETE("/esi-role-mappings/:id", autoRoleH.DeleteEsiRoleMapping)
+
+		// ESI 头衔映射
+		adminAutoRole.GET("/corp-titles", autoRoleH.ListCorpTitles)
+		adminAutoRole.GET("/esi-title-mappings", autoRoleH.ListEsiTitleMappings)
+		adminAutoRole.POST("/esi-title-mappings", autoRoleH.CreateEsiTitleMapping)
+		adminAutoRole.DELETE("/esi-title-mappings/:id", autoRoleH.DeleteEsiTitleMapping)
+
+		// 手动触发同步
+		adminAutoRole.POST("/sync", autoRoleH.TriggerSync)
+	}
 }

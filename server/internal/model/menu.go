@@ -159,6 +159,7 @@ func GetSystemMenuSeeds() []MenuSeed {
 		{ParentName: "System", Menu: Menu{Type: MenuTypeMenu, Name: "AlliancePAP", Path: "pap", Component: "/system/pap", Title: "menus.system.alliancePap", Sort: 63, KeepAlive: true, Status: 1}},
 		{ParentName: "AlliancePAP", Menu: Menu{Type: MenuTypeButton, Name: "AlliancePAPFetch", Permission: "system:pap:fetch", Title: "手动拉取", Sort: 100, Status: 1}},
 		{ParentName: "System", Menu: Menu{Type: MenuTypeMenu, Name: "CorpNpcKillReport", Path: "npc-kills", Component: "/system/npc-kills", Title: "menus.system.npcKills", Sort: 62, KeepAlive: true, Status: 1}},
+		{ParentName: "System", Menu: Menu{Type: MenuTypeMenu, Name: "AutoRole", Path: "auto-role", Component: "/system/auto-role", Title: "menus.system.autoRole", Sort: 61, KeepAlive: true, Status: 1}},
 		{ParentName: "System", Menu: Menu{Type: MenuTypeMenu, Name: "UserCenter", Path: "user-center", Component: "/system/user-center", Title: "menus.system.userCenter", Sort: 60, IsHide: true, KeepAlive: true, IsHideTab: true, Status: 1}},
 
 		// ── Result ──
@@ -185,6 +186,7 @@ func DefaultRoleMenuMap() map[string][]string {
 			"SystemWallet", "WalletAdjust", "WalletViewLog",
 			"AlliancePAP", "AlliancePAPFetch",
 			"CorpNpcKillReport",
+			"AutoRole",
 			"UserCenter",
 			"Result", "ResultSuccess", "ResultFail",
 		},

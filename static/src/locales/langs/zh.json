@@ -296,7 +296,8 @@
       "esiRefresh": "定时任务",
       "wallet": "钱包管理",
       "alliancePap": "联盟 PAP",
-      "npcKills": "刷怪报表"
+      "npcKills": "刷怪报表",
+      "autoRole": "自动权限"
     }
   },
   "info": {

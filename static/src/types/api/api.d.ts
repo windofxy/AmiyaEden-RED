@@ -248,6 +248,49 @@ declare namespace Api {
       role_ids: number[]
       roles: RoleItem[]
     }
+
+    /** ESI 军团角色 → 系统角色映射 */
+    interface EsiRoleMapping {
+      id: number
+      esi_role: string
+      role_id: number
+      role_code: string
+      role_name: string
+      created_at: string
+    }
+
+    /** 创建 ESI 角色映射请求 */
+    interface CreateEsiRoleMappingParams {
+      esi_role: string
+      role_id: number
+    }
+
+    /** ESI 头衔 → 系统角色映射 */
+    interface EsiTitleMapping {
+      id: number
+      corporation_id: number
+      title_id: number
+      title_name: string
+      role_id: number
+      role_code: string
+      role_name: string
+      created_at: string
+    }
+
+    /** 军团头衔信息（从头衔快照获取，用于前端下拉选择） */
+    interface CorpTitleInfo {
+      corporation_id: number
+      title_id: number
+      title_name: string
+    }
+
+    /** 创建 ESI 头衔映射请求 */
+    interface CreateEsiTitleMappingParams {
+      corporation_id: number
+      title_id: number
+      title_name?: string
+      role_id: number
+    }
   }
 
   /** ESI 刷新队列类型 */

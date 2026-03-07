@@ -247,7 +247,8 @@
       "esiRefresh": "Scheduled Tasks",
       "wallet": "Wallet Management",
       "alliancePap": "Alliance PAP",
-      "npcKills": "NPC Kill Report"
+      "npcKills": "NPC Kill Report",
+      "autoRole": "Auto Roles"
     },
     "shop": {
       "title": "Shop",

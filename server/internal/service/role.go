@@ -263,14 +263,14 @@ func (s *RoleService) SetUserRoles(ctx context.Context, operatorRoles []string, 
 	}
 
 	// 同步 User.Role 字段（取最高优先级角色）
-	s.syncUserPrimaryRole(userID)
+	s.SyncUserPrimaryRole(userID)
 	s.InvalidateUserCache(ctx, userID)
 	return nil
 }
 
 // ─── 内部辅助 ───
 
-func (s *RoleService) syncUserPrimaryRole(userID uint) {
+func (s *RoleService) SyncUserPrimaryRole(userID uint) {
 	codes, err := s.repo.GetUserRoleCodes(userID)
 	if err != nil || len(codes) == 0 {
 		_ = s.userRepo.UpdateRole(userID, model.RoleUser)

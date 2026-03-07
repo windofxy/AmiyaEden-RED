@@ -85,6 +85,16 @@ export const systemRoutes: AppRouteRecord = {
         keepAlive: true,
         roles: ['super_admin', 'admin']
       }
+    },
+    {
+      path: 'auto-role',
+      name: 'AutoRole',
+      component: '/system/auto-role',
+      meta: {
+        title: 'menus.system.autoRole',
+        keepAlive: true,
+        roles: ['super_admin', 'admin']
+      }
     }
   ]
 }
