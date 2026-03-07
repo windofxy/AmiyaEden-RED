@@ -697,6 +697,28 @@
     "status": {
       "archived": "已归档",
       "current": "当月"
+    },
+    "settle": {
+      "openBtn": "PAP 兑换设置",
+      "title": "PAP 兑换配置 & 月度结算",
+      "enabled": "开启兑换",
+      "walletPerPap": "兑换比例",
+      "walletPerPapUnit": "系统钱包 / 1 PAP",
+      "walletPerPapRequired": "兑换比例必须大于 0",
+      "settleMonth": "结算月份",
+      "settleMonthRequired": "请选择结算月份",
+      "walletConvert": "同时兑换钱包",
+      "walletConvertTip": "开启后将按比例自动向所有用户发放系统钱包",
+      "saveConfig": "保存配置",
+      "doSettle": "执行归档结算",
+      "configSaved": "配置已保存",
+      "configFailed": "保存配置失败",
+      "settleSuccess": "结算完成",
+      "settleFailed": "结算失败",
+      "resultTitle": "结算结果",
+      "resultUsers": "实际展开结算 {count} 人",
+      "resultSkipped": "跳过 {count} 人（无对应用户/已兑换）",
+      "resultWallet": "共发放系统钱包 {amount}"
     }
   },
   "sde": {

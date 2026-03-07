@@ -135,3 +135,26 @@ func (r *AlliancePAPRepository) ListRecentRecordsByMainChar(mainChar string, lim
 		Find(&records).Error
 	return records, err
 }
+
+// ─────────────────────────────────────────────
+//  PAP 月度结算 / 兑换
+// ─────────────────────────────────────────────
+
+// ListUnredeemedSummaries 查询某月尚未兑换的汇总列表
+func (r *AlliancePAPRepository) ListUnredeemedSummaries(year, month int) ([]model.AlliancePAPSummary, error) {
+	var list []model.AlliancePAPSummary
+	err := global.DB.
+		Where("year = ? AND month = ? AND is_redeemed = false AND total_pap > 0", year, month).
+		Find(&list).Error
+	return list, err
+}
+
+// MarkSummaryRedeemed 将汇总标记为已兑换，并记录发放金额
+func (r *AlliancePAPRepository) MarkSummaryRedeemed(id uint, walletIssued float64) error {
+	return global.DB.Model(&model.AlliancePAPSummary{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"is_redeemed":   true,
+			"wallet_issued": walletIssued,
+		}).Error
+}

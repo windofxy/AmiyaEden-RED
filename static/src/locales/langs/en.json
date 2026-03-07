@@ -685,6 +685,28 @@
     "status": {
       "archived": "Archived",
       "current": "Current"
+    },
+    "settle": {
+      "openBtn": "PAP Exchange Config",
+      "title": "PAP Exchange Config & Monthly Settle",
+      "enabled": "Enable Exchange",
+      "walletPerPap": "Exchange Rate",
+      "walletPerPapUnit": "wallet / 1 PAP",
+      "walletPerPapRequired": "Rate must be greater than 0",
+      "settleMonth": "Settle Month",
+      "settleMonthRequired": "Please select a month",
+      "walletConvert": "Also Convert Wallet",
+      "walletConvertTip": "Automatically issue wallet balance by rate",
+      "saveConfig": "Save Config",
+      "doSettle": "Archive & Settle",
+      "configSaved": "Config saved",
+      "configFailed": "Failed to save config",
+      "settleSuccess": "Settlement complete",
+      "settleFailed": "Settlement failed",
+      "resultTitle": "Settlement Result",
+      "resultUsers": "{count} users settled",
+      "resultSkipped": "{count} users skipped",
+      "resultWallet": "Total wallet issued: {amount}"
     }
   },
   "sde": {

@@ -181,6 +181,11 @@ func RegisterRoutes(r *gin.Engine) {
 	{
 		alliancePAPAdmin.GET("", alliancePAPAdminH.GetAllAlliancePAP)
 		alliancePAPAdmin.POST("/fetch", alliancePAPAdminH.TriggerFetch)
+		// PAP 兑换配置
+		alliancePAPAdmin.GET("/config", alliancePAPAdminH.GetExchangeConfig)
+		alliancePAPAdmin.PUT("/config", alliancePAPAdminH.SetExchangeConfig)
+		// 月度归档 + 兑换系统钱包
+		alliancePAPAdmin.POST("/settle", alliancePAPAdminH.SettleMonth)
 	}
 
 	// 菜单管理

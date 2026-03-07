@@ -53,6 +53,16 @@ type UserFilter struct {
 	Role     string
 }
 
+// GetByPrimaryCharacterID 根据主角色 ID 查询用户
+func (r *UserRepository) GetByPrimaryCharacterID(characterID int64) (*model.User, error) {
+	var user model.User
+	err := global.DB.Where("primary_character_id = ?", characterID).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // List 分页查询用户列表（支持筛选）
 func (r *UserRepository) List(page, pageSize int, filter UserFilter) ([]model.User, int64, error) {
 	var users []model.User
