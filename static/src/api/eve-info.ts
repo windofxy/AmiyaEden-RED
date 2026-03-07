@@ -9,3 +9,8 @@ export function fetchInfoWallet(data: Api.EveInfo.WalletRequest) {
 export function fetchInfoSkills(data: Api.EveInfo.SkillRequest) {
   return request.post<Api.EveInfo.SkillResponse>({ url: '/api/v1/info/skills', data })
 }
+
+/** 获取角色可用舰船列表 */
+export function fetchInfoShips(data: Api.EveInfo.ShipRequest) {
+  return request.post<Api.EveInfo.ShipResponse>({ url: '/api/v1/info/ships', data })
+}

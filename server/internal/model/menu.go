@@ -127,6 +127,7 @@ func GetSystemMenuSeeds() []MenuSeed {
 		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "EveInfoWallet", Path: "wallet", Component: "/info/wallet", Title: "menus.info.wallet", Sort: 100, KeepAlive: true, Status: 1}},
 		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "EveInfoSkill", Path: "skill", Component: "/info/skill", Title: "menus.info.skill", Sort: 90, KeepAlive: true, Status: 1}},
 		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "NpcKillReport", Path: "npc-kills", Component: "/info/npc-kills", Title: "menus.info.npcKills", Sort: 80, KeepAlive: true, Status: 1}},
+		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "EveInfoShips", Path: "ships", Component: "/info/ships", Title: "menus.info.ships", Sort: 70, KeepAlive: true, Status: 1}},
 
 		// ── SRP ──
 		{ParentName: "", Menu: Menu{Type: MenuTypeDir, Name: "SRP", Path: "/srp", Component: "/index/index", Title: "menus.srp.title", Icon: "ri:money-dollar-box-line", Sort: 80, Status: 1}},
@@ -208,7 +209,7 @@ func DefaultRoleMenuMap() map[string][]string {
 		},
 		RoleUser: {
 			"Dashboard", "Console", "Characters",
-			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport",
+			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips",
 			"Operation", "MyPap", "Wallet", "JoinFleet",
 			"ShopRoot", "Shop",
 			"SRP", "SrpApply",
@@ -217,7 +218,7 @@ func DefaultRoleMenuMap() map[string][]string {
 		},
 		RoleGuest: {
 			"Dashboard", "Console", "Characters",
-			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport",
+			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips",
 			"Result", "ResultSuccess", "ResultFail",
 		},
 	}

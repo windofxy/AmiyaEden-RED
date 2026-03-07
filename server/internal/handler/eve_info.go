@@ -56,3 +56,22 @@ func (h *EveInfoHandler) GetCharacterSkills(c *gin.Context) {
 	}
 	response.OK(c, result)
 }
+
+// GetCharacterShips POST /info/ships
+// 获取指定角色的可用舰船列表
+func (h *EveInfoHandler) GetCharacterShips(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+
+	var req service.InfoShipRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, response.CodeParamError, "参数错误: "+err.Error())
+		return
+	}
+
+	result, err := h.svc.GetCharacterShips(userID, &req)
+	if err != nil {
+		response.Fail(c, response.CodeBizError, err.Error())
+		return
+	}
+	response.OK(c, result)
+}

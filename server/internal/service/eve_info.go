@@ -297,3 +297,167 @@ func (s *EveInfoService) GetCharacterSkills(userID uint, req *InfoSkillRequest) 
 
 	return result, nil
 }
+
+// ─────────────────────────────────────────────
+//  可用舰船 — 请求 & 响应
+// ─────────────────────────────────────────────
+
+// ShipCategoryID EVE 舰船分类 ID
+const ShipCategoryID = 6
+
+// InfoShipRequest 可用舰船请求
+type InfoShipRequest struct {
+	CharacterID int64  `json:"character_id" binding:"required"`
+	Language    string `json:"language"`
+}
+
+// InfoShipSkillReq 舰船的单条技能需求
+type InfoShipSkillReq struct {
+	SkillID       int    `json:"skill_id"`
+	SkillName     string `json:"skill_name"`
+	RequiredLevel int    `json:"required_level"`
+	CurrentLevel  int    `json:"current_level"` // 角色当前等级，0 = 未注射
+	Met           bool   `json:"met"`           // 是否满足
+}
+
+// InfoShipItem 单艘舰船
+type InfoShipItem struct {
+	TypeID          int                `json:"type_id"`
+	TypeName        string             `json:"type_name"`
+	GroupID         int                `json:"group_id"`
+	GroupName       string             `json:"group_name"`
+	MarketGroupID   int                `json:"market_group_id"`
+	MarketGroupName string             `json:"market_group_name"`
+	RaceID          int                `json:"race_id"`
+	RaceName        string             `json:"race_name"`
+	CanFly          bool               `json:"can_fly"`    // 是否满足所有技能需求
+	SkillReqs       []InfoShipSkillReq `json:"skill_reqs"` // 技能需求列表
+}
+
+// InfoShipResponse 可用舰船响应
+type InfoShipResponse struct {
+	TotalShips   int            `json:"total_ships"`   // 舰船总数
+	FlyableShips int            `json:"flyable_ships"` // 可驾驶数
+	Ships        []InfoShipItem `json:"ships"`
+}
+
+// GetCharacterShips 获取角色可用舰船列表
+func (s *EveInfoService) GetCharacterShips(userID uint, req *InfoShipRequest) (*InfoShipResponse, error) {
+	// 校验角色归属
+	if err := s.validateCharacterOwnership(userID, req.CharacterID); err != nil {
+		return nil, err
+	}
+
+	lang := req.Language
+	if lang == "" {
+		lang = "zh"
+	}
+
+	// 1. 获取角色已注射技能 => map[skillID]activeLevel
+	skillList, err := s.skillRepo.GetSkillList(int(req.CharacterID))
+	if err != nil {
+		return nil, err
+	}
+	charSkills := make(map[int]int, len(skillList))
+	for _, sk := range skillList {
+		charSkills[sk.SkillID] = sk.ActiveLevel
+	}
+
+	// 2. 获取所有舰船（categoryID=6）
+	ships, err := s.sdeRepo.GetShipsByCategoryID(lang)
+	if err != nil {
+		return nil, err
+	}
+
+	// 收集所有舰船 typeID
+	shipIDs := make([]int, 0, len(ships))
+	for _, sh := range ships {
+		shipIDs = append(shipIDs, sh.TypeID)
+	}
+
+	// 3. 批量获取舰船技能需求
+	reqs, err := s.sdeRepo.GetShipSkillRequirements(shipIDs)
+	if err != nil {
+		return nil, err
+	}
+	// 按 shipTypeID 分组
+	reqMap := make(map[int][]repository.ShipSkillReq)
+	for _, r := range reqs {
+		reqMap[r.ShipTypeID] = append(reqMap[r.ShipTypeID], r)
+	}
+
+	// 4. 收集所有需求中的 skillTypeID，拿翻译
+	skillTypeIDs := make(map[int]struct{})
+	for _, r := range reqs {
+		skillTypeIDs[r.SkillTypeID] = struct{}{}
+	}
+	skillIDList := make([]int, 0, len(skillTypeIDs))
+	for id := range skillTypeIDs {
+		skillIDList = append(skillIDList, id)
+	}
+	published := true
+	skillNameMap := make(map[int]string)
+	if len(skillIDList) > 0 {
+		typeInfos, err := s.sdeRepo.GetTypes(skillIDList, &published, lang)
+		if err == nil {
+			for _, t := range typeInfos {
+				skillNameMap[t.TypeID] = t.TypeName
+			}
+		}
+	}
+
+	// 5. 获取所有种族名称
+	races, err := s.sdeRepo.GetAllRaces()
+	raceMap := make(map[int]string)
+	if err == nil {
+		for _, rc := range races {
+			raceMap[rc.RaceID] = rc.RaceName
+		}
+	}
+
+	// 6. 组装响应
+	result := &InfoShipResponse{
+		TotalShips: len(ships),
+	}
+	flyable := 0
+	result.Ships = make([]InfoShipItem, 0, len(ships))
+
+	for _, sh := range ships {
+		item := InfoShipItem{
+			TypeID:          sh.TypeID,
+			TypeName:        sh.TypeName,
+			GroupID:         sh.GroupID,
+			GroupName:       sh.GroupName,
+			MarketGroupID:   sh.MarketGroupID,
+			MarketGroupName: sh.MarketGroupName,
+			RaceID:          sh.RaceID,
+			RaceName:        raceMap[sh.RaceID],
+			CanFly:          true,
+		}
+
+		// 比对技能需求
+		shipReqs := reqMap[sh.TypeID]
+		item.SkillReqs = make([]InfoShipSkillReq, 0, len(shipReqs))
+		for _, sr := range shipReqs {
+			currentLv := charSkills[sr.SkillTypeID] // 0 if not learned
+			met := currentLv >= sr.RequiredLevel
+			if !met {
+				item.CanFly = false
+			}
+			item.SkillReqs = append(item.SkillReqs, InfoShipSkillReq{
+				SkillID:       sr.SkillTypeID,
+				SkillName:     skillNameMap[sr.SkillTypeID],
+				RequiredLevel: sr.RequiredLevel,
+				CurrentLevel:  currentLv,
+				Met:           met,
+			})
+		}
+		if item.CanFly {
+			flyable++
+		}
+		result.Ships = append(result.Ships, item)
+	}
+	result.FlyableShips = flyable
+
+	return result, nil
+}

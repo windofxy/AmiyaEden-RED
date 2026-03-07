@@ -286,6 +286,7 @@
       "title": "EVE Character Info",
       "wallet": "Wallet Journal",
       "skill": "Skill List",
+      "ships": "Flyable Ships",
       "npcKills": "NPC Kills"
     }
   },
@@ -321,7 +322,16 @@
     "unallocatedSPSuffix": " unallocated skill points.",
     "totalTrainingTime": "Training Time",
     "queuedSPSuffix": " skill points in queue",
-    "journalIndex": "ID"
+    "journalIndex": "ID",
+    "flyableShips": "Flyable Ships",
+    "allRaces": "All Races",
+    "allGroups": "All Groups",
+    "allMarketGroups": "All Market Groups",
+    "searchShip": "Search ships",
+    "onlyFlyable": "Flyable only",
+    "unknownRace": "Unknown Race",
+    "noSkillReqs": "No skill requirements",
+    "noShipData": "No ship data"
   },
   "npcKill": {
     "title": "NPC Kill Report",

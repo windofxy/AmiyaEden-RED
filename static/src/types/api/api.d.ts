@@ -972,6 +972,42 @@ declare namespace Api {
       skills: SkillItem[]
       skill_queue: SkillQueueItem[]
     }
+
+    /** 可用舰船请求参数 */
+    interface ShipRequest {
+      character_id: number
+      language?: string
+    }
+
+    /** 舰船技能需求 */
+    interface ShipSkillReq {
+      skill_id: number
+      skill_name: string
+      required_level: number
+      current_level: number
+      met: boolean
+    }
+
+    /** 舰船条目 */
+    interface ShipItem {
+      type_id: number
+      type_name: string
+      group_id: number
+      group_name: string
+      market_group_id: number
+      market_group_name: string
+      race_id: number
+      race_name: string
+      can_fly: boolean
+      skill_reqs: ShipSkillReq[]
+    }
+
+    /** 可用舰船响应 */
+    interface ShipResponse {
+      total_ships: number
+      flyable_ships: number
+      ships: ShipItem[]
+    }
   }
 
   /** SDE 数据查询类型 */

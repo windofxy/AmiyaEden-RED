@@ -284,6 +284,7 @@
       "title": "EVE 角色信息",
       "wallet": "钱包流水",
       "skill": "技能列表",
+      "ships": "可用舰船",
       "npcKills": "刷怪报表"
     },
     "system": {
@@ -333,7 +334,16 @@
     "unallocatedSPSuffix": " 未分配技能点。",
     "totalTrainingTime": "训练时间",
     "queuedSPSuffix": "个技能点排队中",
-    "journalIndex": "ID"
+    "journalIndex": "ID",
+    "flyableShips": "可驾驶舰船",
+    "allRaces": "全部种族",
+    "allGroups": "全部舰船组",
+    "allMarketGroups": "全部市场分组",
+    "searchShip": "搜索舰船",
+    "onlyFlyable": "只显示可用舰船",
+    "unknownRace": "未知种族",
+    "noSkillReqs": "无技能需求",
+    "noShipData": "暂无舰船数据"
   },
   "npcKill": {
     "title": "刷怪报表",
