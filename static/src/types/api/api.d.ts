@@ -986,6 +986,7 @@ declare namespace Api {
       required_level: number
       current_level: number
       met: boolean
+      depth: number
     }
 
     /** 舰船条目 */

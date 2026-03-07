@@ -318,6 +318,7 @@ type InfoShipSkillReq struct {
 	RequiredLevel int    `json:"required_level"`
 	CurrentLevel  int    `json:"current_level"` // 角色当前等级，0 = 未注射
 	Met           bool   `json:"met"`           // 是否满足
+	Depth         int    `json:"depth"`         // 1=直接需求 2+=前置技能
 }
 
 // InfoShipItem 单艘舰船
@@ -450,6 +451,7 @@ func (s *EveInfoService) GetCharacterShips(userID uint, req *InfoShipRequest) (*
 				RequiredLevel: sr.RequiredLevel,
 				CurrentLevel:  currentLv,
 				Met:           met,
+				Depth:         sr.Depth,
 			})
 		}
 		if item.CanFly {

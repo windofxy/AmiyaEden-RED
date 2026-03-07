@@ -310,39 +310,68 @@ func (r *SdeRepository) GetShipsByCategoryID(languageID string) ([]ShipInfo, err
 	return result, err
 }
 
-// ShipSkillReq 舰船技能需求行
+// ShipSkillReq 舰船技能需求行（含递归层深）
 type ShipSkillReq struct {
 	ShipTypeID    int `json:"ship_type_id"    gorm:"column:ship_type_id"`
 	SkillTypeID   int `json:"skill_type_id"   gorm:"column:skill_type_id"`
 	RequiredLevel int `json:"required_level"  gorm:"column:required_level"`
+	Depth         int `json:"depth"           gorm:"column:depth"`
 }
 
-// GetShipSkillRequirements 批量获取舰船的技能需求
-// attributeID 182/183/184/1285/1289/1290 => 对应技能槽
-// attributeID 277/278/279/1286/1287/1288 => 对应等级槽
+// GetShipSkillRequirements 批量获取舰船技能需求（含前置技能递归）
 func (r *SdeRepository) GetShipSkillRequirements(shipTypeIDs []int) ([]ShipSkillReq, error) {
 	if len(shipTypeIDs) == 0 {
 		return nil, nil
 	}
 	var result []ShipSkillReq
 
-	err := global.DB.Table(`"dgmTypeAttributes" sk`).
-		Select(`
-			sk."typeID"      AS ship_type_id,
-			sk."valueInt"    AS skill_type_id,
-			lv."valueInt"    AS required_level
-		`).
-		Joins(`JOIN "dgmTypeAttributes" lv ON sk."typeID" = lv."typeID"
-			AND lv."attributeID" = CASE sk."attributeID"
-				WHEN 182  THEN 277
-				WHEN 183  THEN 278
-				WHEN 184  THEN 279
-				WHEN 1285 THEN 1286
-				WHEN 1289 THEN 1287
-				WHEN 1290 THEN 1288
-			END`).
-		Where(`sk."typeID" IN ? AND sk."attributeID" IN (182, 183, 184, 1285, 1289, 1290) AND sk."valueInt" IS NOT NULL`, shipTypeIDs).
-		Scan(&result).Error
+	sql := `
+WITH RECURSIVE skill_tree AS (
+  SELECT
+    sk."typeID"   AS ship_type_id,
+    sk."valueInt" AS skill_type_id,
+    lv."valueInt" AS required_level,
+    1             AS depth
+  FROM "dgmTypeAttributes" sk
+  JOIN "dgmTypeAttributes" lv
+    ON sk."typeID" = lv."typeID"
+    AND lv."attributeID" = CASE sk."attributeID"
+      WHEN 182  THEN 277  WHEN 183 THEN 278  WHEN 184  THEN 279
+      WHEN 1285 THEN 1286 WHEN 1289 THEN 1287 WHEN 1290 THEN 1288
+    END
+  WHERE sk."typeID" IN ?
+    AND sk."attributeID" IN (182, 183, 184, 1285, 1289, 1290)
+    AND sk."valueInt" IS NOT NULL
+
+  UNION
+
+  SELECT
+    st.ship_type_id,
+    sk."valueInt" AS skill_type_id,
+    lv."valueInt" AS required_level,
+    st.depth + 1
+  FROM skill_tree st
+  JOIN "dgmTypeAttributes" sk
+    ON sk."typeID" = st.skill_type_id
+    AND sk."attributeID" IN (182, 183, 184, 1285, 1289, 1290)
+  JOIN "dgmTypeAttributes" lv
+    ON sk."typeID" = lv."typeID"
+    AND lv."attributeID" = CASE sk."attributeID"
+      WHEN 182  THEN 277  WHEN 183 THEN 278  WHEN 184  THEN 279
+      WHEN 1285 THEN 1286 WHEN 1289 THEN 1287 WHEN 1290 THEN 1288
+    END
+  WHERE sk."valueInt" IS NOT NULL
+    AND st.depth < 10
+)
+SELECT
+  ship_type_id,
+  skill_type_id,
+  MAX(required_level) AS required_level,
+  MIN(depth)          AS depth
+FROM skill_tree
+GROUP BY ship_type_id, skill_type_id`
+
+	err := global.DB.Raw(sql, shipTypeIDs).Scan(&result).Error
 	return result, err
 }
 

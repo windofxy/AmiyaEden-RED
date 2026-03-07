@@ -527,9 +527,19 @@
   .popover-skill-row {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 13px;
+    gap: 4px;
+    font-size: 12px;
     padding: 2px 0;
+  }
+
+  .popover-skill-row.prereq {
+    opacity: 0.8;
+  }
+
+  .prereq-indent {
+    color: var(--el-text-color-placeholder);
+    font-size: 11px;
+    flex-shrink: 0;
   }
 
   .popover-skill-row.met {
@@ -546,6 +556,13 @@
 
   .popover-skill-level {
     font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .popover-skill-req {
+    color: var(--el-text-color-placeholder);
+    font-weight: 400;
+    margin-left: 2px;
   }
 
   .check {
