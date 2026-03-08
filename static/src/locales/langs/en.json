@@ -287,6 +287,7 @@
       "wallet": "Wallet Journal",
       "skill": "Skill List",
       "ships": "Flyable Ships",
+      "implants": "Implants/Clones",
       "npcKills": "NPC Kills"
     }
   },
@@ -331,7 +332,19 @@
     "onlyFlyable": "Flyable only",
     "unknownRace": "Unknown Race",
     "noSkillReqs": "No skill requirements",
-    "noShipData": "No ship data"
+    "noShipData": "No ship data",
+    "jumpCloneCount": "Jump Clones",
+    "lastJumpDate": "Last Jump",
+    "jumpFatigueExpire": "Jump Fatigue",
+    "jumpReady": "Jump Clones Ready",
+    "jumpFatigueRemaining": "Fatigue: ",
+    "lastCloneJump": "Last Clone Jump",
+    "homeStation": "Home Station",
+    "activeImplants": "Active Implants",
+    "jumpClones": "Jump Clones",
+    "noImplants": "No implants",
+    "noJumpClones": "No jump clones",
+    "noImplantData": "No clone data, please wait for refresh"
   },
   "npcKill": {
     "title": "NPC Kill Report",

@@ -128,6 +128,7 @@ func GetSystemMenuSeeds() []MenuSeed {
 		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "EveInfoSkill", Path: "skill", Component: "/info/skill", Title: "menus.info.skill", Sort: 90, KeepAlive: true, Status: 1}},
 		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "NpcKillReport", Path: "npc-kills", Component: "/info/npc-kills", Title: "menus.info.npcKills", Sort: 80, KeepAlive: true, Status: 1}},
 		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "EveInfoShips", Path: "ships", Component: "/info/ships", Title: "menus.info.ships", Sort: 70, KeepAlive: true, Status: 1}},
+		{ParentName: "EveInfo", Menu: Menu{Type: MenuTypeMenu, Name: "EveInfoImplants", Path: "implants", Component: "/info/implants", Title: "menus.info.implants", Sort: 60, KeepAlive: true, Status: 1}},
 
 		// ── SRP ──
 		{ParentName: "", Menu: Menu{Type: MenuTypeDir, Name: "SRP", Path: "/srp", Component: "/index/index", Title: "menus.srp.title", Icon: "ri:money-dollar-box-line", Sort: 80, Status: 1}},

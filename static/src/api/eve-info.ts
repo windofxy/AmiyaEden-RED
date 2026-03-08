@@ -14,3 +14,8 @@ export function fetchInfoSkills(data: Api.EveInfo.SkillRequest) {
 export function fetchInfoShips(data: Api.EveInfo.ShipRequest) {
   return request.post<Api.EveInfo.ShipResponse>({ url: '/api/v1/info/ships', data })
 }
+
+/** 获取角色克隆体/植入体信息 */
+export function fetchInfoImplants(data: Api.EveInfo.ImplantsRequest) {
+  return request.post<Api.EveInfo.ImplantsResponse>({ url: '/api/v1/info/implants', data })
+}

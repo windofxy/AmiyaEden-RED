@@ -138,14 +138,25 @@ func (t *ClonesTask) Execute(ctx *TaskContext) error {
 	var implantRecords []model.EveCharacterImplants
 	// 跳跃克隆的植入体
 	for _, jc := range clones.JumpClones {
-		for _, implantID := range jc.Implants {
+		if len(jc.Implants) == 0 {
+			// 没有植入体时插入占位行（ImplantID=0），保留位置信息
 			implantRecords = append(implantRecords, model.EveCharacterImplants{
 				JumpCloneID:  jc.JumpCloneID,
 				CharacterID:  ctx.CharacterID,
-				ImplantID:    implantID,
+				ImplantID:    0,
 				LocationID:   jc.LocationID,
 				LocationType: jc.LocationType,
 			})
+		} else {
+			for _, implantID := range jc.Implants {
+				implantRecords = append(implantRecords, model.EveCharacterImplants{
+					JumpCloneID:  jc.JumpCloneID,
+					CharacterID:  ctx.CharacterID,
+					ImplantID:    implantID,
+					LocationID:   jc.LocationID,
+					LocationType: jc.LocationType,
+				})
+			}
 		}
 	}
 	// 当前活跃植入体（JumpCloneID = 0 表示当前克隆体）

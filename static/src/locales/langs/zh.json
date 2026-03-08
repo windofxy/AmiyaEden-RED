@@ -285,6 +285,7 @@
       "wallet": "钱包流水",
       "skill": "技能列表",
       "ships": "可用舰船",
+      "implants": "植入体/克隆",
       "npcKills": "刷怪报表"
     },
     "system": {
@@ -343,7 +344,19 @@
     "onlyFlyable": "只显示可用舰船",
     "unknownRace": "未知种族",
     "noSkillReqs": "无技能需求",
-    "noShipData": "暂无舰船数据"
+    "noShipData": "暂无舰船数据",
+    "jumpCloneCount": "跳跃克隆体",
+    "lastJumpDate": "上次跳跃",
+    "jumpFatigueExpire": "跳跃疲劳消除",
+    "jumpReady": "远程克隆已就绪",
+    "jumpFatigueRemaining": "疲劳剩余 ",
+    "lastCloneJump": "上次克隆跳跃",
+    "homeStation": "基地空间站",
+    "activeImplants": "当前活跃植入体",
+    "jumpClones": "跳跃克隆体",
+    "noImplants": "无植入体",
+    "noJumpClones": "暂无跳跃克隆体",
+    "noImplantData": "暂无克隆体数据，请等待数据刷新"
   },
   "npcKill": {
     "title": "刷怪报表",

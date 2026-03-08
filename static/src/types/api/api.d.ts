@@ -1009,6 +1009,43 @@ declare namespace Api {
       flyable_ships: number
       ships: ShipItem[]
     }
+
+    /** 克隆体/植入体请求 */
+    interface ImplantsRequest {
+      character_id: number
+      language?: string
+    }
+
+    /** 位置信息 */
+    interface ImplantLocation {
+      location_id: number
+      location_type: string
+      location_name: string
+    }
+
+    /** 植入体条目 */
+    interface ImplantItem {
+      implant_id: number
+      implant_name: string
+    }
+
+    /** 跳跃克隆体信息 */
+    interface JumpCloneInfo {
+      jump_clone_id: number
+      location: ImplantLocation
+      implants: ImplantItem[]
+    }
+
+    /** 克隆体/植入体响应 */
+    interface ImplantsResponse {
+      home_location: ImplantLocation | null
+      last_clone_jump_date: string | null
+      last_station_change_date: string | null
+      jump_fatigue_expire: string | null
+      last_jump_date: string | null
+      active_implants: ImplantItem[]
+      jump_clones: JumpCloneInfo[]
+    }
   }
 
   /** SDE 数据查询类型 */

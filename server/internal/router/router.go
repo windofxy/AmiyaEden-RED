@@ -107,6 +107,7 @@ func RegisterRoutes(r *gin.Engine) {
 		info.POST("/wallet", infoH.GetWalletJournal)
 		info.POST("/skills", infoH.GetCharacterSkills)
 		info.POST("/ships", infoH.GetCharacterShips)
+		info.POST("/implants", infoH.GetCharacterImplants)
 	}
 
 	// ─── NPC 刷怪报表 ───
