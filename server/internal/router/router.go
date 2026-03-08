@@ -18,6 +18,7 @@ func RegisterRoutes(r *gin.Engine) {
 	{
 		sso.GET("/login", ssoH.Login)
 		sso.GET("/callback", ssoH.Callback)
+		sso.GET("/scopes", ssoH.GetScopes)
 	}
 
 	// ─── SDE 公开查询（API Key 鉴权）───
@@ -36,7 +37,7 @@ func RegisterRoutes(r *gin.Engine) {
 	// SSO 角色管理（绑定/解绑/设主角色）
 	ssoAuth := auth.Group("/sso/eve")
 	{
-		ssoAuth.GET("/scopes", ssoH.GetScopes)
+		// ssoAuth.GET("/scopes", ssoH.GetScopes)
 		ssoAuth.GET("/characters", ssoH.GetMyCharacters)
 		ssoAuth.GET("/bind", ssoH.BindLogin)
 		ssoAuth.PUT("/primary/:character_id", ssoH.SetPrimary)

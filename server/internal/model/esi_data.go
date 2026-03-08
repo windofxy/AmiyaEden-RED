@@ -12,7 +12,11 @@ type EveCharacterNotification = esimodel.EveCharacterNotification
 
 type EveCharacterTitle = esimodel.EveCharacterTitle
 
-type EveCharacterClone = esimodel.EveCharacterClone
+type EveCharacterCloneBaseInfo = esimodel.EveCharacterCloneBaseInfo
+type EveCharacterImplants = esimodel.EveCharacterImplants
+
+type EveStructure = esimodel.EveStructure
+type CorpStructureInfo = esimodel.CorpStructureInfo
 
 type EveKillmailList = esimodel.EveKillmailList
 type EveKillmailItem = esimodel.EveKillmailItem
