@@ -86,6 +86,9 @@ func autoMigrate(db *gorm.DB) {
 		&model.EveCharacterSkill{},
 		&model.EveCharacterSkills{},
 		&model.EveCharacterSkillQueue{},
+
+		&model.EveCharacterFitting{},
+		&model.EveCharacterFittingItem{},
 		// Fleet / Operation 相关表
 		&model.Fleet{},
 		&model.FleetMember{},

@@ -1046,6 +1046,62 @@ declare namespace Api {
       active_implants: ImplantItem[]
       jump_clones: JumpCloneInfo[]
     }
+
+    /** 装配列表请求 */
+    interface FittingsRequest {
+      language?: string
+    }
+
+    /** 装配物品条目 */
+    interface FittingItemResponse {
+      type_id: number
+      type_name: string
+      quantity: number
+      flag: string
+    }
+
+    /** 按槽位分组的装配物品 */
+    interface FittingSlotGroup {
+      flag_name: string
+      flag_text: string
+      order_id: number
+      items: FittingItemResponse[]
+    }
+
+    /** 单个装配 */
+    interface FittingResponse {
+      fitting_id: number
+      character_id: number
+      name: string
+      description: string
+      ship_type_id: number
+      ship_name: string
+      group_id: number
+      group_name: string
+      race_id: number
+      race_name: string
+      slots: FittingSlotGroup[]
+    }
+
+    /** 装配列表响应 */
+    interface FittingsListResponse {
+      total: number
+      fittings: FittingResponse[]
+    }
+
+    /** 保存装配请求 */
+    interface SaveFittingRequest {
+      character_id: number
+      fitting_id?: number
+      name: string
+      description?: string
+      ship_type_id: number
+      items: {
+        type_id: number
+        quantity: number
+        flag: string
+      }[]
+    }
   }
 
   /** SDE 数据查询类型 */

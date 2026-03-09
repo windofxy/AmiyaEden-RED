@@ -110,6 +110,11 @@ func RegisterRoutes(r *gin.Engine) {
 		info.POST("/implants", infoH.GetCharacterImplants)
 	}
 
+	// ─── 装配 ───
+	fittingsH := handler.NewFittingsHandler()
+	info.POST("/fittings", fittingsH.GetFittings)
+	info.POST("/fittings/save", fittingsH.SaveFitting)
+
 	// ─── NPC 刷怪报表 ───
 	npcKillH := handler.NewNpcKillHandler()
 	info.POST("/npc-kills", npcKillH.GetNpcKills)

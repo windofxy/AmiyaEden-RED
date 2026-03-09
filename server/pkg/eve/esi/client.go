@@ -214,3 +214,33 @@ func (c *Client) PostNoContent(ctx context.Context, path string, accessToken str
 	}
 	return nil
 }
+
+// Delete 发起带认证的 DELETE 请求
+func (c *Client) Delete(ctx context.Context, path string, accessToken string) error {
+	url := c.baseURL + path
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, url, nil)
+	if err != nil {
+		return fmt.Errorf("build ESI request: %w", err)
+	}
+
+	if accessToken != "" {
+		req.Header.Set("Authorization", "Bearer "+accessToken)
+	}
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("ESI DELETE %s: %w", path, err)
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("read ESI response: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("ESI error %d on DELETE %s: %s", resp.StatusCode, path, string(respBody))
+	}
+	return nil
+}

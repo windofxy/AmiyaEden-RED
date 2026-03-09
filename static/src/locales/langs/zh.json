@@ -286,7 +286,8 @@
       "skill": "技能列表",
       "ships": "可用舰船",
       "implants": "植入体/克隆",
-      "npcKills": "刷怪报表"
+      "npcKills": "刷怪报表",
+      "fittings": "我的装配"
     },
     "system": {
       "title": "系统管理",
@@ -356,7 +357,12 @@
     "jumpClones": "跳跃克隆体",
     "noImplants": "无植入体",
     "noJumpClones": "暂无跳跃克隆体",
-    "noImplantData": "暂无克隆体数据，请等待数据刷新"
+    "noImplantData": "暂无克隆体数据，请等待数据刷新",
+    "fittingsTitle": "我的装配",
+    "searchFitting": "搜索装配",
+    "noFittingData": "暂无装配数据，请等待数据刷新",
+    "fittingDetail": "装配详情",
+    "fittingCount": "装配数量"
   },
   "npcKill": {
     "title": "刷怪报表",

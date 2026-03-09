@@ -288,7 +288,8 @@
       "skill": "Skill List",
       "ships": "Flyable Ships",
       "implants": "Implants/Clones",
-      "npcKills": "NPC Kills"
+      "npcKills": "NPC Kills",
+      "fittings": "My Fittings"
     }
   },
   "info": {
@@ -344,7 +345,12 @@
     "jumpClones": "Jump Clones",
     "noImplants": "No implants",
     "noJumpClones": "No jump clones",
-    "noImplantData": "No clone data, please wait for refresh"
+    "noImplantData": "No clone data, please wait for refresh",
+    "fittingsTitle": "My Fittings",
+    "searchFitting": "Search fittings",
+    "noFittingData": "No fitting data, please wait for refresh",
+    "fittingDetail": "Fitting Detail",
+    "fittingCount": "Fitting Count"
   },
   "npcKill": {
     "title": "NPC Kill Report",

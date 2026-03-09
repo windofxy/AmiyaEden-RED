@@ -19,3 +19,13 @@ export function fetchInfoShips(data: Api.EveInfo.ShipRequest) {
 export function fetchInfoImplants(data: Api.EveInfo.ImplantsRequest) {
   return request.post<Api.EveInfo.ImplantsResponse>({ url: '/api/v1/info/implants', data })
 }
+
+/** 获取用户所有角色的装配列表 */
+export function fetchInfoFittings(data: Api.EveInfo.FittingsRequest) {
+  return request.post<Api.EveInfo.FittingsListResponse>({ url: '/api/v1/info/fittings', data })
+}
+
+/** 保存装配（同步 ESI） */
+export function saveInfoFitting(data: Api.EveInfo.SaveFittingRequest) {
+  return request.post<Api.EveInfo.FittingResponse>({ url: '/api/v1/info/fittings/save', data })
+}

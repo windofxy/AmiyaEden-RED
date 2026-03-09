@@ -31,3 +31,6 @@ type EVECharacterWalletTransaction = esimodel.EVECharacterWalletTransaction
 type EveCharacterSkill = esimodel.EveCharacterSkill
 type EveCharacterSkills = esimodel.EveCharacterSkills
 type EveCharacterSkillQueue = esimodel.EveCharacterSkillQueue
+
+type EveCharacterFitting = esimodel.EveCharacterFitting
+type EveCharacterFittingItem = esimodel.EveCharacterFittingItem
