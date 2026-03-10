@@ -220,8 +220,8 @@ func (s *AlliancePAPService) ImportAlliancePAP(year, month int, data *PAPImportI
 		existingSummary = nil
 	}
 	
-	var totalPap float64 = 0.0
-	var yearlyTotalPap float64 = 0.0
+	var totalPap float64 = data.MonthlyPAP
+	var yearlyTotalPap float64 = data.MonthlyPAP
 	var monthlyRank int = 1
 	var yearlyRank int = 1
 	var globalMonthlyRank int = 1
