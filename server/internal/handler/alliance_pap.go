@@ -133,10 +133,9 @@ func (h *AlliancePAPHandler) ImportAlliancePAP(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil || req.PAPImportInfo.CalculatedAt == "" {
 		if err != nil {
 			response.Fail(c, response.CodeParamError, "请求参数错误: " + err.Error())
+			return
 		}
-		else {
-			response.Fail(c, response.CodeParamError, "请求参数错误: 缺少数据时间")
-		}
+		response.Fail(c, response.CodeParamError, "请求参数错误: 缺少数据时间")
 		return
 	}
 
