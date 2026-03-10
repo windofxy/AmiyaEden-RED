@@ -213,8 +213,6 @@ type PAPImportInfo struct {
 	CalculatedAt string `json:"calculated_at" binding:"required"`
 }
 
-const alliancePAPTimeLayoutXLSX = "2006/01/02 15:04"
-
 // ImportAlliancePAP 导入联盟 PAP 数据
 func (s *AlliancePAPService) ImportAlliancePAP(year, month int, data *PAPImportInfo, mainChar *model.EveCharacter) error {
 	existingSummary, err := s.repo.GetSummary(mainChar.CharacterName, year, month)
@@ -230,7 +228,7 @@ func (s *AlliancePAPService) ImportAlliancePAP(year, month int, data *PAPImportI
 	var globalYearlyRank int = 1
 	var totalInCorp int = 0
 	var totalGlobal int = 0
-	calculatedAt, err := time.ParseInLocation(alliancePAPTimeLayoutXLSX, data.CalculatedAt, time.UTC)
+	calculatedAt, err := time.ParseInLocation(alliancePAPTimeLayout, data.CalculatedAt, time.UTC)
 
 	if err != nil {
 		return err
