@@ -702,7 +702,19 @@
     "fetchTriggered": "Fetch triggered, please refresh later",
     "fetchFailed": "Failed to trigger fetch",
     "emptyData": "No alliance PAP data for this month",
-    "importBtn": "Import PAP table",
+    "importBtnSEAT": "Import from SEAT",
+    "importFormSEAT": {
+      "fields": {
+        "URL": "URL",
+        "URLPlaceholder": "SEAT PAP fetch URL",
+        "xsrfToken": "XSRF-TOKEN",
+        "laravelSession": "laravel_session",
+        "cfClearance": "cf_clearance (optional)",
+        "UA": "UA (optional)",
+        "UAPlaceHolder": "User-Agent"
+      }
+    },
+    "importBtnXLS": "Import from XLS",
     "importNoData": "No valid data found, check columns (primary_character_name, monthly_pap, calculated_at)",
     "importFailed": "Import failed",
     "importSuccess": "Import complete: {count} records",

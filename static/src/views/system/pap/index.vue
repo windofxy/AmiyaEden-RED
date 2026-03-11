@@ -189,7 +189,7 @@
     }
   }
 
-  // ─── 导入 PAP 表格 ───
+  // ─── 从表格/SEAT导入 PAP ───
   const handleImport = async (rows: Record<string, unknown>[]) => {
     const { year, month } = parseMonth()
     const items = rows

@@ -10,17 +10,53 @@
       <ElButton type="primary" :loading="fetching" :icon="Download" @click="handleFetch">
         {{ t('alliancePap.fetchLatest') }}
       </ElButton>
-      <ArtExcelImport @import-success="handleImport">
-        {{ $t('alliancePap.importBtn') }}
+      <ElButton type="primary" :loading="fetching" :icon="Download" @click="OpenImportSEATDialog">
+        {{ t('alliancePap.importBtnSEAT') }}
+      </ElButton>
+      <ArtExcelImport @import-success="handleImportXLS">
+        {{ $t('alliancePap.importBtnXLS') }}
       </ArtExcelImport>
     </template>
   </ArtSearchBar>
+
+  <!-- 从 SEAT 导入弹窗 -->
+  <ElDialog
+    v-model="dialogVisible"
+    :title="$t('alliancePap.importBtnSEAT')"
+    width="520px"
+    destroy-on-close
+  >
+    <ElForm ref="formRef" :model="formDataSEAT" :rules="formRulesSEAT" label-width="100px">
+      <ElFormItem :label="$t('alliancePap.importFormSEAT.fields.URL')" prop="URL">
+        <ElInput v-model="formDataSEAT.URL" :placeholder="$t('alliancePap.importFormSEAT.fields.titlePlaceholder')" />
+      </ElFormItem>
+      <ElFormItem :label="$t('alliancePap.importFormSEAT.fields.xsrfToken')" prop="xsrfToken">
+        <ElInput v-model="formDataSEAT.xsrfToken" :placeholder="$t('alliancePap.importFormSEAT.fields.xsrfToken')" />
+      </ElFormItem>
+      <ElFormItem :label="$t('alliancePap.importFormSEAT.fields.laravelSession')" prop="laravelSession">
+        <ElInput v-model="formDataSEAT.laravelSession" :placeholder="$t('alliancePap.importFormSEAT.fields.laravelSession')" />
+      </ElFormItem>
+      <ElFormItem :label="$t('alliancePap.importFormSEAT.fields.cfClearance')" prop="cfClearance">
+        <ElInput v-model="formDataSEAT.cfClearance" :placeholder="$t('alliancePap.importFormSEAT.fields.cfClearance')" />
+      </ElFormItem>
+      <ElFormItem :label="$t('alliancePap.importFormSEAT.fields.UA')" prop="UA">
+        <ElInput v-model="formDataSEAT.UA" :placeholder="$t('alliancePap.importFormSEAT.fields.UAPlaceHolder')" />
+      </ElFormItem>
+    </ElForm>
+    <template #footer>
+      <ElButton @click="dialogVisible = false">{{ $t('common.cancel') }}</ElButton>
+      <ElButton type="primary" :loading="submitLoading" @click="handleImportSEAT">
+        {{ $t('common.confirm') }}
+      </ElButton>
+    </template>
+  </ElDialog>
 </template>
 
 <script setup lang="ts">
   import { Download } from '@element-plus/icons-vue'
-  import { ElButton } from 'element-plus'
+  import { ElButton, type FormInstance, type FormRules } from 'element-plus'
   import { useI18n } from 'vue-i18n'
+  import axios from 'axios'
 
   interface Props {
     modelValue: Record<string, any>
@@ -73,7 +109,77 @@
     emit('fetch')
   }
 
-  function handleImport(rows: Record<string, unknown>[]) {
+  function handleImportXLS(rows: Record<string, unknown>[]) {
     emit('import', rows)
+  }
+
+  // ─── 从 SEAT 导入 ───
+  const dialogVisible = ref(false)
+  const submitLoading = ref(false)
+  const formRef = ref<FormInstance>()
+
+  const formDataSEAT = reactive({
+    URL: '',
+    xsrfToken: '',
+    laravelSession: 1,
+    cfClearance: '',
+    UA: ''
+  })
+
+  const formRulesSEAT: FormRules = {
+    URL: [{ required: true, message: t('alliancePap.importFormSEAT.fields.titlePlaceholder'), trigger: 'blur' }],
+    xsrfToken: [{ required: true, message: t('alliancePap.importFormSEAT.fields.xsrfToken'), trigger: 'blur' }],
+    laravelSession: [{ required: true, message: t('alliancePap.importFormSEAT.fields.laravelSession'), trigger: 'blur' }],
+    cfClearance: [{ required: false, message: t('alliancePap.importFormSEAT.fields.cfClearance'), trigger: 'blur' }],
+    UA: [{ required: false, message: t('alliancePap.importFormSEAT.fields.UAPlaceHolder'), trigger: 'blur' }]
+  }
+
+  function ResetFormDataSEAT() {
+    formDataSEAT.URL = ''
+    formDataSEAT.xsrfToken = ''
+    formDataSEAT.laravelSession = 1
+    formDataSEAT.cfClearance = ''
+    formDataSEAT.UA = ''
+  }
+
+  function OpenImportSEATDialog() {
+    ResetFormDataSEAT()
+    dialogVisible.value = true
+  }
+
+  async function handleImportSEAT() {
+    if (!formRef.value) return
+    await formRef.value.validate()
+
+    let rows : Record<string, unknown>[] = []
+
+    submitLoading.value = true
+    try {
+      /* 创建Axios实例 */
+      const axiosInstance = axios.create({
+        timeout: 10000,
+        headers: {
+          'Cookie': `laravel_session=${formDataSEAT.laravelSession};XSRF-TOKEN=${formDataSEAT.xsrfToken}` + (formDataSEAT.cfClearance ? `;cf_clearance=${formDataSEAT.cfClearance}` : ''),
+          'User-Agent': formDataSEAT.UA || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+          'Accept': 'application/json, text/javascript, */*; q=0.01',
+          'Accept-Encoding': 'gzip, deflate, br, zstd',
+          'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Connection': 'Close'
+        }
+      })
+
+      const response = await axiosInstance.get(formDataSEAT.URL)
+      console.log(response.data)
+
+      dialogVisible.value = false
+      //emit('import', rows)
+    } catch (e: any) {
+      ElMessage.error(e?.message ?? t('common.error'))
+    } finally {
+      submitLoading.value = false
+    }
   }
 </script>
