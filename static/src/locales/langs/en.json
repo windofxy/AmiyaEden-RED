@@ -708,7 +708,8 @@
         "xsrfToken": "XSRF-TOKEN",
         "laravelSession": "laravel_session",
         "cfClearance": "cf_clearance (optional)"
-      }
+      },
+      "fetchPapError": "Failed to fetch PAP data from SEAT, status code: {status}"
     },
     "importBtnXLS": "Import from XLS",
     "importNoData": "No valid data found, check columns (primary_character_name, monthly_pap, calculated_at)",

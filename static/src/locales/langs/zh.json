@@ -720,7 +720,8 @@
         "xsrfToken": "XSRF-TOKEN",
         "laravelSession": "laravel_session",
         "cfClearance": "cf_clearance (可选)"
-      }
+      },
+      "fetchPapError": "从 SEAT 获取数据失败，状态码：{status}"
     },
     "importBtnXLS": "从表格导入",
     "importNoData": "未找到有效数据，请检查列名（主角色 / 月 PAP / 数据时间）",

@@ -173,7 +173,6 @@
 
       if (response.status == 200 && response.data.data) {
         for (const item of response.data.data) {
-          console.log(item)
           const temp : Record<string, unknown> = {
             '主角色': item.character,
             '月 PAP': item.pap_count,
@@ -182,10 +181,12 @@
           rows.push(temp)
         }
       }
+      else {
+        throw new Error(t('alliancePap.importFormSEAT.fetchPapError', { status: response.status }))
+      }
 
-      console.log(rows)
       dialogVisible.value = false
-      //emit('import', rows)
+      emit('import', rows)
     } catch (e: any) {
       ElMessage.error(e?.message ?? t('common.error'))
     } finally {
