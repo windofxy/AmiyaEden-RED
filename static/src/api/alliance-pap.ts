@@ -79,7 +79,7 @@ export function triggerAlliancePAPFetch(params?: { year?: number; month?: number
 export interface PAPImportInfo {
   primary_character_name: string
   monthly_pap: number
-  calculated_at: number
+  calculated_at: string
 }
 
 export function importAlliancePAP(params?: { year?: number, month?: number, data: PAPImportInfo }) {
