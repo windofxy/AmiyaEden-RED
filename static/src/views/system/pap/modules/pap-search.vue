@@ -171,7 +171,7 @@
 
       const response = await axiosInstance.get('/seatproxy/tools/paptracking')
 
-      if (response.status !== 200 && response.data.data) {
+      if (response.status == 200 && response.data.data) {
         for (const item of response.data.data) {
           console.log(item)
           const temp : Record<string, unknown> = {
