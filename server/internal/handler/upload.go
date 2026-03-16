@@ -20,10 +20,10 @@ const (
 )
 
 var allowedExts = map[string]bool{
-	".jpg": true,
+	".jpg":  true,
 	".jpeg": true,
-	".png": true,
-	".gif": true,
+	".png":  true,
+	".gif":  true,
 	".webp": true,
 }
 
