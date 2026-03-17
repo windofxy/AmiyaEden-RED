@@ -4,14 +4,20 @@
     <CardList :cards="dashboardData?.cards" />
 
     <ElRow :gutter="20">
-      <ElCol :sm="24" :md="24" :lg="12">
+      <ElCol :sm="24" :md="24" :lg="8">
         <FleetList :fleets="dashboardData?.fleets ?? []" />
       </ElCol>
-      <ElCol :sm="24" :md="12" :lg="6">
-        <PapChart title="联盟 PAP" :data="dashboardData?.pap_stats?.alliance ?? []" />
+      <ElCol :sm="24" :md="12" :lg="8">
+        <PapChart
+          :title="t('console.alliancePap')"
+          :data="dashboardData?.pap_stats?.alliance ?? []"
+        />
       </ElCol>
-      <ElCol :sm="24" :md="12" :lg="6">
-        <PapChart title="内部 PAP" :data="dashboardData?.pap_stats?.internal ?? []" />
+      <ElCol :sm="24" :md="12" :lg="8">
+        <PapChart
+          :title="t('console.internalPap')"
+          :data="dashboardData?.pap_stats?.internal ?? []"
+        />
       </ElCol>
     </ElRow>
 
@@ -24,6 +30,7 @@
 </template>
 
 <script setup lang="ts">
+  import { useI18n } from 'vue-i18n'
   import { fetchDashboard } from '@/api/dashboard'
   import CardList from './modules/card-list.vue'
   import FleetList from './modules/fleet-list.vue'
@@ -31,6 +38,8 @@
   import SrpList from './modules/srp-list.vue'
 
   defineOptions({ name: 'Console' })
+
+  const { t } = useI18n()
 
   const loading = ref(false)
   const dashboardData = ref<Api.Dashboard.DashboardResult>()

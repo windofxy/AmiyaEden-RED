@@ -17,12 +17,15 @@ type EveCharacterImplants = esimodel.EveCharacterImplants
 
 type EveStructure = esimodel.EveStructure
 type CorpStructureInfo = esimodel.CorpStructureInfo
+type EveStation = esimodel.EveStation
 
 type EveKillmailList = esimodel.EveKillmailList
 type EveKillmailItem = esimodel.EveKillmailItem
 type EveCharacterKillmail = esimodel.EveCharacterKillmail
 
 type EveCharacterContract = esimodel.EveCharacterContract
+type EveCharacterContractItem = esimodel.EveCharacterContractItem
+type EveCharacterContractBid = esimodel.EveCharacterContractBid
 
 type EVECharacterWallet = esimodel.EVECharacterWallet
 type EVECharacterWalletJournal = esimodel.EVECharacterWalletJournal

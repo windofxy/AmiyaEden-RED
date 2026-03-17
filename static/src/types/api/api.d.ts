@@ -420,6 +420,13 @@ declare namespace Api {
       pap_count: number
       issued_by: number
       created_at: string
+      /** 以下为富化字段（联表查询返回） */
+      character_name: string
+      fleet_title: string
+      fleet_start_at: string
+      fc_character_name: string
+      fleet_importance: string
+      ship_type_id: number | null
     }
 
     /** 邀请链接 */
@@ -492,6 +499,7 @@ declare namespace Api {
       user_id: number
       balance: number
       updated_at: string
+      character_name?: string
     }
 
     /** 钱包流水 */
@@ -505,6 +513,7 @@ declare namespace Api {
       balance_after: number
       operator_id: number
       created_at: string
+      character_name?: string
     }
 
     /** 钱包操作日志 */
@@ -518,6 +527,8 @@ declare namespace Api {
       after: number
       reason: string
       created_at: string
+      target_character_name?: string
+      operator_character_name?: string
     }
 
     /** 管理员调整余额请求 */
@@ -805,6 +816,107 @@ declare namespace Api {
       product_id: number
       status: string
     }>
+
+    // ─── 抽奖活动 ───
+
+    /** 抽奖奖品稀有度 */
+    type LotteryPrizeTier = 'normal' | 'rare' | 'legendary'
+
+    /** 抽奖奖品 */
+    interface LotteryPrize {
+      id: number
+      activity_id: number
+      name: string
+      image: string
+      tier: LotteryPrizeTier
+      probability_weight: number
+      total_stock: number
+      drawn_count: number
+      created_at: string
+      updated_at: string
+    }
+
+    /** 抽奖活动 */
+    interface LotteryActivity {
+      id: number
+      name: string
+      description: string
+      image: string
+      cost_per_draw: number
+      status: number
+      start_at: string | null
+      end_at: string | null
+      sort_order: number
+      prizes: LotteryPrize[]
+      created_at: string
+      updated_at: string
+    }
+
+    /** 抽奖记录 */
+    interface LotteryRecord {
+      id: number
+      user_id: number
+      activity_id: number
+      activity_name: string
+      prize_id: number
+      prize_name: string
+      prize_tier: LotteryPrizeTier
+      prize_image: string
+      cost: number
+      delivery_status: 'pending' | 'delivered'
+      created_at: string
+      updated_at: string
+    }
+
+    /** 抽奖结果 */
+    interface DrawResult {
+      prize: LotteryPrize
+    }
+
+    /** 创建抽奖活动参数 */
+    interface LotteryActivityCreateParams {
+      name: string
+      description?: string
+      image?: string
+      cost_per_draw?: number
+      status?: number
+      start_at?: string | null
+      end_at?: string | null
+      sort_order?: number
+    }
+
+    /** 更新抽奖活动参数 */
+    interface LotteryActivityUpdateParams {
+      id: number
+      name?: string
+      description?: string
+      image?: string
+      cost_per_draw?: number
+      status?: number
+      start_at?: string | null
+      end_at?: string | null
+      sort_order?: number
+    }
+
+    /** 创建奖品参数 */
+    interface LotteryPrizeCreateParams {
+      activity_id: number
+      name: string
+      image?: string
+      tier?: LotteryPrizeTier
+      probability_weight?: number
+      total_stock?: number
+    }
+
+    /** 更新奖品参数 */
+    interface LotteryPrizeUpdateParams {
+      id: number
+      name?: string
+      image?: string
+      tier?: LotteryPrizeTier
+      probability_weight?: number
+      total_stock?: number
+    }
   }
 
   /** 通知相关类型 */
@@ -1108,6 +1220,114 @@ declare namespace Api {
         quantity: number
         flag: string
       }[]
+    }
+
+    /** 资产查询请求 */
+    interface AssetsRequest {
+      language?: string
+    }
+
+    /** 资产物品节点 */
+    interface AssetItemNode {
+      item_id: number
+      type_id: number
+      type_name: string
+      group_name: string
+      category_id: number
+      quantity: number
+      location_flag: string
+      is_singleton: boolean
+      is_blueprint_copy?: boolean
+      asset_name?: string
+      character_id: number
+      character_name: string
+      children?: AssetItemNode[]
+    }
+
+    /** 资产位置节点 */
+    interface AssetLocationNode {
+      location_id: number
+      location_type: string
+      location_name: string
+      items: AssetItemNode[]
+    }
+
+    /** 资产列表响应 */
+    interface AssetsResponse {
+      total_items: number
+      locations: AssetLocationNode[]
+    }
+
+    /** 合同请求（含分页与过滤） */
+    interface ContractsRequest {
+      current: number
+      size: number
+      type?: string
+      status?: string
+      language?: string
+    }
+
+    /** 合同竞标条目 */
+    interface ContractBidItem {
+      amount: number
+      bid_id: number
+      bidder_id: number
+      date_bid: string
+    }
+
+    /** 合同物品条目 */
+    interface ContractItemDetail {
+      type_id: number
+      type_name: string
+      group_name: string
+      category_id: number
+      quantity: number
+      is_included: boolean
+      is_singleton: boolean
+    }
+
+    /** 单条合同响应（列表行，不含物品/竞标） */
+    interface ContractItem {
+      character_id: number
+      character_name: string
+      contract_id: number
+      acceptor_id: number
+      assignee_id: number
+      availability: string
+      buyout?: number
+      collateral?: number
+      date_accepted?: string
+      date_completed?: string
+      date_expired: string
+      date_issued: string
+      days_to_complete?: number
+      end_location_id?: number
+      for_corporation: boolean
+      issuer_corporation_id: number
+      issuer_id: number
+      price?: number
+      reward?: number
+      start_location_id?: number
+      status: string
+      title?: string
+      type: string
+      volume?: number
+    }
+
+    /** 合同列表响应（分页） */
+    type ContractsResponse = Api.Common.PaginatedResponse<ContractItem>
+
+    /** 合同详情请求 */
+    interface ContractDetailRequest {
+      character_id: number
+      contract_id: number
+      language?: string
+    }
+
+    /** 合同详情响应（物品 + 竞标） */
+    interface ContractDetailResponse {
+      items: ContractItemDetail[]
+      bids: ContractBidItem[]
     }
   }
 

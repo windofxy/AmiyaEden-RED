@@ -121,6 +121,31 @@ func (r *FleetRepository) RemoveMember(fleetID string, characterID int64) error 
 		Delete(&model.FleetMember{}).Error
 }
 
+// kmRefreshCooldown 同一成员两次 KM 刷新触发的最小间隔
+const kmRefreshCooldown = 15 * time.Minute
+
+// ListMembersForKMRefresh 查询需要触发 KM 刷新的成员：
+// 从未触发过，或上次触发时间超过 15 分钟
+func (r *FleetRepository) ListMembersForKMRefresh(fleetID string) ([]model.FleetMember, error) {
+	var members []model.FleetMember
+	cooldownAt := time.Now().Add(-kmRefreshCooldown)
+	err := global.DB.Where(
+		"fleet_id = ? AND (km_refreshed_at IS NULL OR km_refreshed_at < ?)",
+		fleetID, cooldownAt,
+	).Find(&members).Error
+	return members, err
+}
+
+// MarkMembersKMRefreshed 更新成员的 KM 刷新时间戳为当前时间
+func (r *FleetRepository) MarkMembersKMRefreshed(fleetID string, characterIDs []int64) error {
+	if len(characterIDs) == 0 {
+		return nil
+	}
+	return global.DB.Model(&model.FleetMember{}).
+		Where("fleet_id = ? AND character_id IN ?", fleetID, characterIDs).
+		Update("km_refreshed_at", time.Now()).Error
+}
+
 // ─────────────────────────────────────────────
 //  PAP Log
 // ─────────────────────────────────────────────
@@ -152,6 +177,37 @@ func (r *FleetRepository) ListPapLogsByUser(userID uint) ([]model.FleetPapLog, e
 	return logs, err
 }
 
+// PapLogDetail PAP 记录（含角色名、FC 名称、舰队信息）
+type PapLogDetail struct {
+	model.FleetPapLog
+	CharacterName   string `json:"character_name"`
+	FleetTitle      string `json:"fleet_title"`
+	FleetStartAt    string `json:"fleet_start_at"`
+	FCCharacterName string `json:"fc_character_name"`
+	FleetImportance string `json:"fleet_importance"`
+	ShipTypeID      *int64 `json:"ship_type_id"`
+}
+
+// ListPapLogsDetailByUser 查询某用户的 PAP 记录（JOIN 舰队、角色信息）
+func (r *FleetRepository) ListPapLogsDetailByUser(userID uint) ([]PapLogDetail, error) {
+	var results []PapLogDetail
+	err := global.DB.Table("fleet_pap_log p").
+		Select(`p.*,
+			COALESCE(ec.character_name, '') AS character_name,
+			COALESCE(f.title, '') AS fleet_title,
+			COALESCE(CAST(f.start_at AS TEXT), '') AS fleet_start_at,
+			COALESCE(f.fc_character_name, '') AS fc_character_name,
+			COALESCE(f.importance, '') AS fleet_importance,
+			fm.ship_type_id`).
+		Joins("LEFT JOIN eve_character ec ON ec.character_id = p.character_id").
+		Joins("LEFT JOIN fleet f ON f.id = p.fleet_id AND f.deleted_at IS NULL").
+		Joins("LEFT JOIN fleet_member fm ON fm.fleet_id = p.fleet_id AND fm.character_id = p.character_id").
+		Where("p.user_id = ?", userID).
+		Order("p.issued_at DESC").
+		Scan(&results).Error
+	return results, err
+}
+
 // ListFleetsByMemberUserID 查询用户参与过的舰队（通过成员记录关联）
 func (r *FleetRepository) ListFleetsByMemberUserID(userID uint, limit int) ([]model.Fleet, error) {
 	var fleets []model.Fleet
@@ -172,9 +228,9 @@ type MonthlyPapStat struct {
 func (r *FleetRepository) SumPapByUserGroupedByMonth(userID uint) ([]MonthlyPapStat, error) {
 	var stats []MonthlyPapStat
 	err := global.DB.Model(&model.FleetPapLog{}).
-		Select("YEAR(issued_at) as year, MONTH(issued_at) as month, COALESCE(SUM(pap_count), 0) as total_pap").
+		Select("EXTRACT(YEAR FROM issued_at)::int as year, EXTRACT(MONTH FROM issued_at)::int as month, COALESCE(SUM(pap_count), 0) as total_pap").
 		Where("user_id = ?", userID).
-		Group("YEAR(issued_at), MONTH(issued_at)").
+		Group("EXTRACT(YEAR FROM issued_at), EXTRACT(MONTH FROM issued_at)").
 		Order("year DESC, month DESC").
 		Limit(12).
 		Scan(&stats).Error

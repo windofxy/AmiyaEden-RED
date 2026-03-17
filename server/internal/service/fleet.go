@@ -21,14 +21,17 @@ import (
 
 const esiBaseURL = "https://esi.evetech.net/latest"
 
+// FleetKMRefreshFunc 触发单个角色 KM 刷新的钩子，由 jobs 层注入以避免循环依赖
+var FleetKMRefreshFunc func(characterID int64)
+
 // FleetService 舰队业务逻辑层
 type FleetService struct {
-	repo        *repository.FleetRepository
-	charRepo    *repository.EveCharacterRepository
-	ssoSvc      *EveSSOService
-	walletSvc   *SysWalletService
-	webhookSvc  *WebhookService
-	http        *http.Client
+	repo       *repository.FleetRepository
+	charRepo   *repository.EveCharacterRepository
+	ssoSvc     *EveSSOService
+	walletSvc  *SysWalletService
+	webhookSvc *WebhookService
+	http       *http.Client
 }
 
 func NewFleetService() *FleetService {
@@ -465,7 +468,51 @@ func (s *FleetService) IssuePap(fleetID string, userID uint, userRole string) er
 		go s.updateFleetMotd(fleet)
 	}
 
+	// 异步触发新成员的 KM 刷新（只刷新本次 PAP 新增的成员）
+	go s.triggerNewMembersKMRefresh(fleetID)
+
 	return nil
+}
+
+// triggerNewMembersKMRefresh 对本舰队中需要 KM 刷新的成员执行触发：
+// 从未触发过，或上次触发时间超过 15 分钟（冷却期外）的成员才会被触发
+func (s *FleetService) triggerNewMembersKMRefresh(fleetID string) {
+	if FleetKMRefreshFunc == nil {
+		return
+	}
+	newMembers, err := s.repo.ListMembersForKMRefresh(fleetID)
+	if err != nil {
+		global.Logger.Warn("[Fleet] 查询待 KM 刷新成员失败",
+			zap.String("fleet_id", fleetID),
+			zap.Error(err),
+		)
+		return
+	}
+	if len(newMembers) == 0 {
+		return
+	}
+
+	charIDs := make([]int64, 0, len(newMembers))
+	for _, m := range newMembers {
+		charIDs = append(charIDs, m.CharacterID)
+	}
+
+	// 先标记，再触发——避免并发重复触发
+	if err := s.repo.MarkMembersKMRefreshed(fleetID, charIDs); err != nil {
+		global.Logger.Warn("[Fleet] 标记 KM 刷新状态失败",
+			zap.String("fleet_id", fleetID),
+			zap.Error(err),
+		)
+		// 即使标记失败也继续触发，下次 PAP 仍会重试
+	}
+
+	for _, charID := range charIDs {
+		FleetKMRefreshFunc(charID)
+	}
+	global.Logger.Info("[Fleet] 已触发舰队成员 KM 刷新",
+		zap.String("fleet_id", fleetID),
+		zap.Int("count", len(charIDs)),
+	)
 }
 
 // ListMembersWithPap 分页查询舰队成员（含 PAP 信息）
@@ -525,9 +572,9 @@ func (s *FleetService) GetPapLogs(fleetID string) ([]model.FleetPapLog, error) {
 	return s.repo.ListPapLogsByFleet(fleetID)
 }
 
-// GetUserPapLogs 获取用户的 PAP 记录
-func (s *FleetService) GetUserPapLogs(userID uint) ([]model.FleetPapLog, error) {
-	return s.repo.ListPapLogsByUser(userID)
+// GetUserPapLogs 获取用户的 PAP 记录（含角色名、FC 名称、舰队信息）
+func (s *FleetService) GetUserPapLogs(userID uint) ([]repository.PapLogDetail, error) {
+	return s.repo.ListPapLogsDetailByUser(userID)
 }
 
 // ─────────────────────────────────────────────

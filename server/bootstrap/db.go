@@ -72,12 +72,15 @@ func autoMigrate(db *gorm.DB) {
 		&model.EveCharacterImplants{},
 		&model.EveStructure{},
 		&model.CorpStructureInfo{},
+		&model.EveStation{},
 
 		&model.EveKillmailList{},
 		&model.EveKillmailItem{},
 		&model.EveCharacterKillmail{},
 
 		&model.EveCharacterContract{},
+		&model.EveCharacterContractItem{},
+		&model.EveCharacterContractBid{},
 
 		&model.EVECharacterWallet{},
 		&model.EVECharacterWalletJournal{},
@@ -101,6 +104,10 @@ func autoMigrate(db *gorm.DB) {
 		&model.ShopProduct{},
 		&model.ShopOrder{},
 		&model.ShopRedeemCode{},
+		// 抽奖相关表
+		&model.ShopLotteryActivity{},
+		&model.ShopLotteryPrize{},
+		&model.ShopLotteryRecord{},
 		// SRP 补损相关表
 		&model.SrpShipPrice{},
 		&model.SrpApplication{},

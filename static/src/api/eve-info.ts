@@ -29,3 +29,24 @@ export function fetchInfoFittings(data: Api.EveInfo.FittingsRequest) {
 export function saveInfoFitting(data: Api.EveInfo.SaveFittingRequest) {
   return request.post<Api.EveInfo.FittingResponse>({ url: '/api/v1/info/fittings/save', data })
 }
+
+/** 获取用户所有角色的资产列表 */
+export function fetchInfoAssets(data: Api.EveInfo.AssetsRequest) {
+  return request.post<Api.EveInfo.AssetsResponse>({ url: '/api/v1/info/assets', data })
+}
+
+/** 获取用户所有角色的合同列表（分页） */
+export function fetchInfoContracts(data: Api.EveInfo.ContractsRequest) {
+  return request.post<Api.Common.PaginatedResponse<Api.EveInfo.ContractItem>>({
+    url: '/api/v1/info/contracts',
+    data
+  })
+}
+
+/** 获取指定合同的物品与竞标详情 */
+export function fetchInfoContractDetail(data: Api.EveInfo.ContractDetailRequest) {
+  return request.post<Api.EveInfo.ContractDetailResponse>({
+    url: '/api/v1/info/contracts/detail',
+    data
+  })
+}
