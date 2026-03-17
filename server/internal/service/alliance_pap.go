@@ -168,8 +168,8 @@ func (s *AlliancePAPService) FetchAndStore(mainChar string, year, month int) err
 	var calculatedAt time.Time
 	calculatedAt = time.Now()
 
-	// Ranking不为nil时才采用
-	if(apiResp.Ranking != nil) {
+	// Ranking不为空时才采用
+	if(apiResp.Ranking.CorporationID != "") {
 		corporationID = apiResp.Ranking.CorporationID
 		monthlyRank = apiResp.Ranking.MonthlyRank
 		yearlyRank = apiResp.Ranking.YearlyRank
