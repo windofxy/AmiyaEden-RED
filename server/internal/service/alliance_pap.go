@@ -156,7 +156,7 @@ func (s *AlliancePAPService) FetchAndStore(mainChar string, year, month int) err
 	// 解析汇总
 	totalPap, _ := strconv.ParseFloat(apiResp.TotalPap, 64)
 	yearlyTotalPap, _ := strconv.ParseFloat(apiResp.YearlyTotalPap, 64)
-	
+
 	corporationID := ""
 	monthlyRank := 0
 	yearlyRank := 0
@@ -169,7 +169,7 @@ func (s *AlliancePAPService) FetchAndStore(mainChar string, year, month int) err
 	calculatedAt = time.Now()
 
 	// Ranking不为空时才采用
-	if(apiResp.Ranking.CorporationID != "") {
+	if apiResp.Ranking.CorporationID != "" {
 		corporationID = apiResp.Ranking.CorporationID
 		monthlyRank = apiResp.Ranking.MonthlyRank
 		yearlyRank = apiResp.Ranking.YearlyRank
@@ -230,9 +230,9 @@ func (s *AlliancePAPService) FetchAllUsers(year, month int) {
 
 // ─── 修改接口 ───
 type PAPImportInfo struct {
-	PrimaryCharacterName string `json:"primary_character_name" binding:"required"`
-	MonthlyPAP float64 `json:"monthly_pap,default=0" binding:"gte=0"`
-	CalculatedAt string `json:"calculated_at" binding:"required"`
+	PrimaryCharacterName string  `json:"primary_character_name" binding:"required"`
+	MonthlyPAP           float64 `json:"monthly_pap,default=0" binding:"gte=0"`
+	CalculatedAt         string  `json:"calculated_at" binding:"required"`
 }
 
 // ImportAlliancePAP 导入联盟 PAP 数据
@@ -241,7 +241,7 @@ func (s *AlliancePAPService) ImportAlliancePAP(year, month int, data *PAPImportI
 	if err != nil {
 		existingSummary = nil
 	}
-	
+
 	var totalPap float64 = data.MonthlyPAP
 	var yearlyTotalPap float64 = data.MonthlyPAP
 	var monthlyRank int = 1
@@ -268,7 +268,7 @@ func (s *AlliancePAPService) ImportAlliancePAP(year, month int, data *PAPImportI
 	}
 
 	corporationID := strconv.FormatInt(mainChar.CorporationID, 10)
-	
+
 	summary := &model.AlliancePAPSummary{
 		MainCharacter:     data.PrimaryCharacterName,
 		Year:              year,
