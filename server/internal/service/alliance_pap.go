@@ -87,12 +87,11 @@ func (s *AlliancePAPService) FetchAndStore(mainChar string, year, month int) err
 		return fmt.Errorf("alliance_pap 配置不完整（base_url 或 api_key 为空）")
 	}
 
-	rawUrl := fmt.Sprintf("/api/pap/main?main_character=%s&year=%d&month=%d",
-		mainChar, year, month)
-	encodedUrl := url.QueryEscape(rawUrl)
-	encodedUrlWithHost := fmt.Sprintf("%s%s", cfg.BaseURL, encodedUrl)
+	encodedCharacterName := url.QueryEscape(mainChar)
+	url := fmt.Sprintf("%s/api/pap/main?main_character=%s&year=%d&month=%d",
+		cfg.BaseURL, encodedCharacterName, year, month)
 
-	req, err := http.NewRequest(http.MethodGet, encodedUrlWithHost, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return fmt.Errorf("构建请求失败: %w", err)
 	}
