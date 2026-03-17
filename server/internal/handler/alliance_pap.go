@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"go.uber.org/zap"
 	"github.com/gin-gonic/gin"
 )
 
@@ -108,22 +107,20 @@ func (h *AlliancePAPHandler) GetAllAlliancePAP(c *gin.Context) {
 
 // TriggerFetch  POST /system/pap/fetch
 // 手动触发拉取（管理员，可指定 year/month）
+type triggerFetchRequest struct {
+	Year          int  `json:"year"  binding:"required"`
+	Month         int  `json:"month" binding:"required,min=1,max=12"`
+}
+
 func (h *AlliancePAPHandler) TriggerFetch(c *gin.Context) {
 	now := time.Now()
 	year := now.Year()
 	month := int(now.Month())
 
-	global.Logger.Info("手动触发联盟 PAP 拉取", zap.String("参数年份", c.Query("year")), zap.String("参数月份", c.Query("month")))
-
-	if y := c.Query("year"); y != "" {
-		if v, err := strconv.Atoi(y); err == nil {
-			year = v
-		}
-	}
-	if m := c.Query("month"); m != "" {
-		if v, err := strconv.Atoi(m); err == nil {
-			month = v
-		}
+	var req triggerFetchRequest
+	if err := c.ShouldBindJSON(&req); err == nil {
+		year = req.Year
+		month = req.Month
 	}
 
 	go func() {
