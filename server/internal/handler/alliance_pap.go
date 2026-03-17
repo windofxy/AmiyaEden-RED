@@ -112,6 +112,8 @@ func (h *AlliancePAPHandler) TriggerFetch(c *gin.Context) {
 	year := now.Year()
 	month := int(now.Month())
 
+	global.Logger.Info("手动触发联盟 PAP 拉取", zap.String("参数年份", c.Query("year")), zap.String("参数月份", c.Query("month")))
+
 	if y := c.Query("year"); y != "" {
 		if v, err := strconv.Atoi(y); err == nil {
 			year = v

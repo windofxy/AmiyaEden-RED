@@ -90,7 +90,6 @@ func (s *AlliancePAPService) FetchAndStore(mainChar string, year, month int) err
 	encodedCharacterName := url.QueryEscape(mainChar)
 	url := fmt.Sprintf("%s/api/pap/main?main_character=%s&year=%d&month=%d",
 		cfg.BaseURL, encodedCharacterName, year, month)
-	global.Logger.Info("请求联盟 PAP API", zap.String("url", url))
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
