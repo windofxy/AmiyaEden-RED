@@ -421,7 +421,9 @@ declare namespace Api {
     interface PapLog {
       id: number
       fleet_id: string
+      fleet_title?: string
       character_id: number
+      character_name?: string
       user_id: number
       pap_count: number
       issued_by: number
@@ -1602,6 +1604,19 @@ declare namespace Api {
       ob_target_type: 'group' | 'private'
       ob_target_id: number
       ob_token: string
+    }
+  }
+
+  /** 系统配置 */
+  namespace SysConfig {
+    interface BasicConfig {
+      corp_id: number
+      site_title: string
+    }
+
+    interface UpdateBasicConfigParams {
+      corp_id?: number
+      site_title?: string
     }
   }
 }
