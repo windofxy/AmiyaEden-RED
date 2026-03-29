@@ -114,13 +114,13 @@ type MapSolarSystem struct {
 	ZMin            float64 `gorm:"column:zMin"                          json:"z_min"`
 	ZMax            float64 `gorm:"column:zMax"                          json:"z_max"`
 	Luminosity      float64 `gorm:"column:luminosity"                    json:"luminosity"`
-	Border          int8    `gorm:"column:border"                        json:"border"`
-	Fringe          int8    `gorm:"column:fringe"                        json:"fringe"`
-	Corridor        int8    `gorm:"column:corridor"                      json:"corridor"`
-	Hub             int8    `gorm:"column:hub"                           json:"hub"`
-	International   int8    `gorm:"column:international"                 json:"international"`
-	Regional        int8    `gorm:"column:regional"                      json:"regional"`
-	Constellation   int8    `gorm:"column:constellation"                 json:"constellation"`
+	Border          bool    `gorm:"column:border"                        json:"border"`
+	Fringe          bool    `gorm:"column:fringe"                        json:"fringe"`
+	Corridor        bool    `gorm:"column:corridor"                      json:"corridor"`
+	Hub             bool    `gorm:"column:hub"                           json:"hub"`
+	International   bool    `gorm:"column:international"                 json:"international"`
+	Regional        bool    `gorm:"column:regional"                      json:"regional"`
+	Constellation   bool    `gorm:"column:constellation"                 json:"constellation"`
 	Security        float64 `gorm:"column:security;index"                json:"security"`
 	FactionID       int     `gorm:"column:factionID"                     json:"faction_id"`
 	Radius          float64 `gorm:"column:radius"                        json:"radius"`

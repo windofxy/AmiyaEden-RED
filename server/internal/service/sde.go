@@ -436,6 +436,7 @@ func importSQL(sqlPath string) error {
 
 	var stmt strings.Builder
 	var stmtCount, errCount int
+	inQuote := false // 追踪当前是否在单引号字符串内
 
 	// 开启第一个事务
 	tx, err := conn.BeginTx(context.Background(), nil)
@@ -493,10 +494,31 @@ func importSQL(sqlPath string) error {
 			continue
 		}
 
+		// 逐字符扫描本行，更新引号状态，检测不在引号内的语句终止符
+		stmtTerminated := false
+		for i := 0; i < len(line); i++ {
+			ch := line[i]
+			if inQuote {
+				if ch == '\'' {
+					// 连续两个单引号是转义，不退出引号
+					if i+1 < len(line) && line[i+1] == '\'' {
+						i++
+					} else {
+						inQuote = false
+					}
+				}
+			} else {
+				if ch == '\'' {
+					inQuote = true
+				} else if ch == ';' && i == len(line)-1 {
+					stmtTerminated = true
+				}
+			}
+		}
 		stmt.WriteString(line)
 		stmt.WriteByte('\n')
 
-		if strings.HasSuffix(trimmed, ";") {
+		if stmtTerminated {
 			sql := strings.TrimSpace(stmt.String())
 			stmt.Reset()
 			if sql == "" || sql == ";" {

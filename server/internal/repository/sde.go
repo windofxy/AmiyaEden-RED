@@ -134,7 +134,7 @@ func (r *SdeRepository) GetTypes(typeIDs []int, published *bool, languageID stri
 		query = query.Where(`t."typeID" IN ?`, typeIDs)
 	}
 	if published != nil && *published {
-		query = query.Where(`t.published = ?`, 1)
+		query = query.Where(`t.published = ?`, true)
 	}
 
 	if err := query.Scan(&result).Error; err != nil {
@@ -170,7 +170,7 @@ func (r *SdeRepository) GetTypesByCategoryID(categoryID int, languageID string) 
 			TC_ID["category"], languageID).
 		Joins(`LEFT JOIN "trnTranslations" mg_name ON mg_name."tcID" = ? AND mg_name."keyID" = mg."marketGroupID" AND mg_name."languageID" = ?`,
 			TC_ID["market_group"], languageID).
-		Where(`c."categoryID" = ? AND t.published = 1`, categoryID)
+		Where(`c."categoryID" = ? AND t.published = true`, categoryID)
 
 	if err := query.Scan(&result).Error; err != nil {
 		return nil, err
@@ -267,7 +267,7 @@ func (r *SdeRepository) FuzzySearch(keyword string, languageID string, categoryI
 			g_name.text  AS group_name,
 			'type'       AS category
 		`).
-		Joins(`JOIN "invTypes" t ON t."typeID" = tr."keyID" AND t.published = 1`).
+		Joins(`JOIN "invTypes" t ON t."typeID" = tr."keyID" AND t.published = true`).
 		Joins(`JOIN "invGroups" g ON g."groupID" = t."groupID"`).
 		Joins(`JOIN "invCategories" c ON c."categoryID" = g."categoryID"`).
 		Joins(`LEFT JOIN "trnTranslations" g_name ON g_name."tcID" = ? AND g_name."keyID" = g."groupID" AND g_name."languageID" = ?`,
@@ -353,7 +353,7 @@ func (r *SdeRepository) GetShipsByCategoryID(languageID string) ([]ShipInfo, err
 			TC_ID["group"], languageID).
 		Joins(`LEFT JOIN "trnTranslations" mg_name ON mg_name."tcID" = ? AND mg_name."keyID" = mg."marketGroupID" AND mg_name."languageID" = ?`,
 			TC_ID["market_group"], languageID).
-		Where(`c."categoryID" = ? AND t.published = 1`, shipCategoryID).
+		Where(`c."categoryID" = ? AND t.published = true`, shipCategoryID).
 		Scan(&result).Error
 	return result, err
 }
