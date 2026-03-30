@@ -28,6 +28,36 @@
       />
     </ElCard>
 
+    <!-- 手动添加成员并发放 PAP 弹窗 -->
+    <ElDialog
+      v-model="manualPapVisible"
+      :title="$t('fleet.manualPap.title')"
+      width="520px"
+      destroy-on-close
+    >
+      <ElInput
+        v-model="manualPapText"
+        type="textarea"
+        :rows="10"
+        :placeholder="$t('fleet.manualPap.placeholder')"
+      />
+      <div v-if="manualPapResult" class="mt-3 text-sm">
+        <p class="text-success">
+          {{ $t('fleet.manualPap.success', { count: manualPapResult.added?.length ?? 0 }) }}
+        </p>
+        <template v-if="manualPapResult.not_found?.length">
+          <p class="mt-1 text-warning">{{ $t('fleet.manualPap.notFound') }}</p>
+          <p class="text-xs text-gray-400">{{ manualPapResult.not_found.join(', ') }}</p>
+        </template>
+      </div>
+      <template #footer>
+        <ElButton @click="manualPapVisible = false">{{ $t('common.cancel') }}</ElButton>
+        <ElButton type="primary" :loading="manualPapLoading" @click="handleManualPap">
+          {{ $t('fleet.manualPap.submit') }}
+        </ElButton>
+      </template>
+    </ElDialog>
+
     <!-- 创建/编辑弹窗 -->
     <ElDialog
       v-model="dialogVisible"
@@ -119,7 +149,7 @@
   import { useTable } from '@/hooks/core/useTable'
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
   import FleetSearch from './modules/fleet-search.vue'
-  import { fetchFleetList, createFleet, updateFleet, deleteFleet } from '@/api/fleet'
+  import { fetchFleetList, createFleet, updateFleet, deleteFleet, manualPap } from '@/api/fleet'
   import { fetchFleetConfigList } from '@/api/fleet-config'
   import { fetchMyCharacters } from '@/api/auth'
   import { useUserStore } from '@/store/modules/user'
@@ -127,6 +157,7 @@
     ElTag,
     ElButton,
     ElIcon,
+    ElMessage,
     ElMessageBox,
     ElSwitch,
     type FormInstance,
@@ -263,9 +294,23 @@
           formatter: (row: FleetItem) => h('span', {}, formatTime(row.created_at))
         },
         {
-          prop: 'actions',
+          prop: 'br_loss_ratio',
+          label: t('fleet.fields.lossRatio'),
+          width: 180,
+          formatter: (row: FleetItem) => {
+            if (!row.br_uuid) return h('span', { class: 'text-gray-400 text-xs' }, '-')
+            const fmt = (v: number) =>
+              v >= 1e9 ? `${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `${(v / 1e6).toFixed(0)}M` : `${v}`
+            return h(
+              'span',
+              { class: 'text-xs' },
+              `${fmt(row.br_team0_value)} : ${fmt(row.br_team1_value)}`
+            )
+          }
+        },
+        {
           label: t('common.operation'),
-          width: 200,
+          width: 240,
           fixed: 'right',
           formatter: (row: FleetItem) =>
             h(
@@ -273,6 +318,20 @@
               { class: 'flex gap-1' },
               [
                 h(ArtButtonTable, { type: 'view', onClick: () => goDetail(row) }),
+                row.br_uuid &&
+                  h(ArtButtonTable, {
+                    icon: 'ri:align-item-right-line',
+                    iconClass: 'bg-info/12 text-info',
+                    onClick: () =>
+                      window.open(`https://warbeacon.net/br/report/${row.br_uuid}`, '_blank')
+                  }),
+                canManageFleet(row) &&
+                  h(ArtButtonTable, {
+                    icon: 'ri:user-add-line',
+                    iconClass: 'bg-success/12 text-success',
+                    title: t('fleet.manualPap.btnTitle'),
+                    onClick: () => openManualPap(row)
+                  }),
                 canManageFleet(row) &&
                   h(ArtButtonTable, { type: 'edit', onClick: () => openEditDialog(row) }),
                 canManageFleet(row) &&
@@ -283,6 +342,40 @@
       ]
     }
   })
+
+  // ─── 手动 PAP ───
+  const manualPapVisible = ref(false)
+  const manualPapLoading = ref(false)
+  const manualPapText = ref('')
+  const manualPapResult = ref<{ added: string[]; not_found: string[] } | null>(null)
+  const manualPapFleetId = ref('')
+
+  function openManualPap(row: FleetItem) {
+    manualPapFleetId.value = row.id
+    manualPapText.value = ''
+    manualPapResult.value = null
+    manualPapVisible.value = true
+  }
+
+  async function handleManualPap() {
+    if (!manualPapText.value.trim()) return
+    manualPapLoading.value = true
+    try {
+      const res = await manualPap(manualPapFleetId.value, manualPapText.value)
+      manualPapResult.value = res ?? { added: [], not_found: [] }
+      const count = res?.added?.length ?? 0
+      if (count > 0) {
+        ElMessage.success(t('fleet.manualPap.success', { count }))
+        refreshData()
+      } else {
+        ElMessage.warning(t('fleet.manualPap.noneAdded'))
+      }
+    } catch (e: any) {
+      ElMessage.error(e?.message ?? t('common.error'))
+    } finally {
+      manualPapLoading.value = false
+    }
+  }
 
   // ─── 搜索 ───
   const searchForm = ref<{ importance: string | undefined }>({ importance: undefined })

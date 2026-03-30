@@ -303,7 +303,8 @@
       "title": "Corp Management",
       "skillPlanManage": "Skill Plan Admin",
       "skillPlanCheck": "Skill Check",
-      "structures": "Structure Management"
+      "structures": "Structure Management",
+      "fleetIncentive": "Fleet Incentive"
     },
     "shop": {
       "title": "Shop",
@@ -775,12 +776,28 @@
       "sendPingHint": "Send a fleet ping to the channel after creation",
       "fleetConfig": "Fleet Config",
       "fleetConfigPlaceholder": "Select fleet config (optional)",
-      "autoSrpMode": "Auto SRP"
+      "autoSrpMode": "Auto SRP",
+      "lossRatio": "Loss Ratio"
     },
     "autoSrp": {
       "disabled": "Disabled",
       "submitOnly": "Submit Only",
       "autoApprove": "Auto Approve"
+    },
+    "viewBR": "View Battle Report",
+    "generateBR": "Generate BR",
+    "brGenerating": "Generating battle report, please wait...",
+    "brGenerated": "Battle report generated",
+    "issueLeadReward": "Issue Lead Reward",
+    "leadRewardIssued": "FC lead reward issued",
+    "manualPap": {
+      "title": "Manually Add Members & Issue PAP",
+      "btnTitle": "Manual PAP",
+      "placeholder": "One character name per line. EVE roster format supported (ship/system columns are ignored).",
+      "submit": "Add & Issue PAP",
+      "success": "PAP issued to {count} character(s)",
+      "noneAdded": "No matching characters found",
+      "notFound": "Characters not found in system (not logged in yet)"
     },
     "importance": {
       "strat_op": "Strat Op",
@@ -1739,6 +1756,27 @@
       "services": "Services",
       "stateTimerEnd": "State Timer End",
       "unanchorsAt": "Unanchors At"
+    }
+  },
+  "fleetIncentive": {
+    "title": "Fleet Battle Incentive",
+    "hint": "[BR Incentive] Auto-issued to all members & FC after battle report generation, once per fleet. Condition: enemy losses / our losses ≥ multiplier (0 = always). [FC Lead Reward] Auto-issued to FC when PAP is issued, once per fleet; can also be manually triggered from fleet detail.",
+    "save": "Save",
+    "saveSuccess": "Saved successfully",
+    "action": "Action",
+    "fields": {
+      "fleetType": "Fleet Type",
+      "enabled": "Enabled",
+      "multiplier": "Win Ratio",
+      "memberReward": "Member Reward",
+      "fcReward": "FC Reward (BR)",
+      "fcLeadEnabled": "Lead Reward",
+      "fcLeadReward": "FC Lead Reward"
+    },
+    "types": {
+      "cta": "CTA",
+      "strat_op": "Strat Op",
+      "other": "Other"
     }
   }
 }

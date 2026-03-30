@@ -147,3 +147,18 @@ export function pingFleet(fleetId: string) {
     url: `/api/v1/operation/fleets/${fleetId}/ping`
   })
 }
+
+/** 生成舰队战报 */
+export function generateFleetBattleReport(fleetId: string) {
+  return request.post<{ uuid: string; team0_loss: number; team1_loss: number }>({
+    url: `/api/v1/operation/fleets/${fleetId}/br`
+  })
+}
+
+/** 手动添加成员并发放 PAP */
+export function manualPap(fleetId: string, text: string) {
+  return request.post<{ added: string[]; not_found: string[] }>({
+    url: `/api/v1/operation/fleets/${fleetId}/manual-pap`,
+    data: { text }
+  })
+}

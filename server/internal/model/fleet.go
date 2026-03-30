@@ -18,22 +18,29 @@ const (
 
 // Fleet 舰队记录
 type Fleet struct {
-	ID              string     `gorm:"primaryKey;size:36"         json:"id"`
-	Title           string     `gorm:"size:256;not null"          json:"title"`
-	Description     string     `gorm:"type:text"                  json:"description"`
-	StartAt         time.Time  `gorm:"not null"                   json:"start_at"`
-	EndAt           time.Time  `gorm:"not null"                   json:"end_at"`
-	Importance      string     `gorm:"size:32;not null"           json:"importance"` // strat_op / cta / other
-	PapCount        float64    `gorm:"default:0"                  json:"pap_count"`
-	FCUserID        uint       `gorm:"not null;index"             json:"fc_user_id"`
-	FCCharacterID   int64      `gorm:"not null"                   json:"fc_character_id"`
-	FCCharacterName string     `gorm:"size:128"                   json:"fc_character_name"`
-	ESIFleetID      *int64     `gorm:""                           json:"esi_fleet_id,omitempty"`
-	FleetConfigID   *uint      `gorm:""                           json:"fleet_config_id,omitempty"`
-	AutoSrpMode     string     `gorm:"size:32;not null;default:'disabled'" json:"auto_srp_mode"` // disabled/submit_only/auto_approve
-	CreatedAt       time.Time  `gorm:"autoCreateTime"             json:"created_at"`
-	UpdatedAt       time.Time  `gorm:"autoUpdateTime"             json:"updated_at"`
-	DeletedAt       *time.Time `gorm:"index"                      json:"deleted_at,omitempty"`
+	ID               string     `gorm:"primaryKey;size:36"         json:"id"`
+	Title            string     `gorm:"size:256;not null"          json:"title"`
+	Description      string     `gorm:"type:text"                  json:"description"`
+	StartAt          time.Time  `gorm:"not null"                   json:"start_at"`
+	EndAt            time.Time  `gorm:"not null"                   json:"end_at"`
+	Importance       string     `gorm:"size:32;not null"           json:"importance"` // strat_op / cta / other
+	PapCount         float64    `gorm:"default:0"                  json:"pap_count"`
+	FCUserID         uint       `gorm:"not null;index"             json:"fc_user_id"`
+	FCCharacterID    int64      `gorm:"not null"                   json:"fc_character_id"`
+	FCCharacterName  string     `gorm:"size:128"                   json:"fc_character_name"`
+	ESIFleetID       *int64     `gorm:""                           json:"esi_fleet_id,omitempty"`
+	FleetConfigID    *uint      `gorm:""                           json:"fleet_config_id,omitempty"`
+	AutoSrpMode      string     `gorm:"size:32;not null;default:'disabled'" json:"auto_srp_mode"` // disabled/submit_only/auto_approve
+	BrUUID           string     `gorm:"column:br_uuid;size:36"                              json:"br_uuid"`
+	BrTeam0Loss      int        `gorm:"column:br_team0_loss;default:0"                      json:"br_team0_loss"`
+	BrTeam0Value     float64    `gorm:"column:br_team0_value;type:decimal(20,2);default:0"  json:"br_team0_value"`
+	BrTeam1Loss      int        `gorm:"column:br_team1_loss;default:0"                      json:"br_team1_loss"`
+	BrTeam1Value     float64    `gorm:"column:br_team1_value;type:decimal(20,2);default:0"  json:"br_team1_value"`
+	IncentiveIssued  bool       `gorm:"column:incentive_issued;default:false"               json:"incentive_issued"`
+	LeadRewardIssued bool       `gorm:"column:lead_reward_issued;default:false"             json:"lead_reward_issued"`
+	CreatedAt        time.Time  `gorm:"autoCreateTime"             json:"created_at"`
+	UpdatedAt        time.Time  `gorm:"autoUpdateTime"             json:"updated_at"`
+	DeletedAt        *time.Time `gorm:"index"                      json:"deleted_at,omitempty"`
 }
 
 func (Fleet) TableName() string { return "fleet" }

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"amiya-eden/global"
 	"amiya-eden/internal/middleware"
 	"amiya-eden/internal/repository"
 	"amiya-eden/internal/service"
@@ -8,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 // FleetHandler 舰队 HTTP 处理器
@@ -227,6 +229,12 @@ func (h *FleetHandler) IssuePap(c *gin.Context) {
 		response.Fail(c, response.CodeBizError, err.Error())
 		return
 	}
+	// PAP 发放成功后异步生成战报
+	go func() {
+		if _, err := h.svc.GenerateBattleReport(fleetID, userID, userRole); err != nil {
+			global.Logger.Warn("[Fleet] IssuePap 后自动生成战报失败", zap.String("fleet_id", fleetID), zap.Error(err))
+		}
+	}()
 	response.OK(c, nil)
 }
 
@@ -370,4 +378,53 @@ func (h *FleetHandler) PingFleet(c *gin.Context) {
 		return
 	}
 	response.OK(c, nil)
+}
+
+// ─────────────────────────────────────────────
+//  战报（Battle Report）
+// ─────────────────────────────────────────────
+
+// GenerateBattleReport POST /operation/fleets/:id/br
+func (h *FleetHandler) GenerateBattleReport(c *gin.Context) {
+	fleetID := c.Param("id")
+	if fleetID == "" {
+		response.Fail(c, response.CodeParamError, "缺少舰队ID")
+		return
+	}
+	userID := middleware.GetUserID(c)
+	userRole := middleware.GetUserRole(c)
+	result, err := h.svc.GenerateBattleReport(fleetID, userID, userRole)
+	if err != nil {
+		response.Fail(c, response.CodeBizError, err.Error())
+		return
+	}
+	response.OK(c, result)
+}
+
+// ─────────────────────────────────────────────
+//  手动添加成员并发放 PAP
+// ─────────────────────────────────────────────
+
+// ManualPap POST /operation/fleets/:id/manual-pap
+func (h *FleetHandler) ManualPap(c *gin.Context) {
+	fleetID := c.Param("id")
+	if fleetID == "" {
+		response.Fail(c, response.CodeParamError, "缺少舰队ID")
+		return
+	}
+	var req struct {
+		Text string `json:"text" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, response.CodeParamError, "请求参数错误: "+err.Error())
+		return
+	}
+	userID := middleware.GetUserID(c)
+	userRole := middleware.GetUserRole(c)
+	result, err := h.svc.ManualPap(fleetID, userID, userRole, req.Text)
+	if err != nil {
+		response.Fail(c, response.CodeBizError, err.Error())
+		return
+	}
+	response.OK(c, result)
 }

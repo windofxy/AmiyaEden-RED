@@ -43,3 +43,21 @@ type EveCharacterKillmail struct {
 }
 
 func (EveCharacterKillmail) TableName() string { return "eve_character_killmail" }
+
+// EveKillmailAttacker 击杀邮件攻击者记录（每条 killmail 可含多位攻击者）
+type EveKillmailAttacker struct {
+	ID             uint      `gorm:"primarykey"                                       json:"id"`
+	KillmailID     int64     `gorm:"column:kill_mail_id;index"                        json:"killmail_id"`
+	CharacterID    int64     `gorm:"column:character_id;index;default:0"              json:"character_id"`
+	CorporationID  int64     `gorm:"column:corporation_id;default:0"                  json:"corporation_id"`
+	AllianceID     int64     `gorm:"column:alliance_id;default:0"                     json:"alliance_id"`
+	FactionID      int64     `gorm:"column:faction_id;default:0"                      json:"faction_id"`
+	DamageDone     int       `gorm:"column:damage_done"                               json:"damage_done"`
+	FinalBlow      bool      `gorm:"column:final_blow;default:false"                  json:"final_blow"`
+	SecurityStatus float64   `gorm:"column:security_status;type:decimal(6,4)"         json:"security_status"`
+	ShipTypeID     int64     `gorm:"column:ship_type_id;default:0"                    json:"ship_type_id"`
+	WeaponTypeID   int64     `gorm:"column:weapon_type_id;default:0"                  json:"weapon_type_id"`
+	CreateTime     time.Time `gorm:"column:create_time;autoCreateTime"                json:"create_time"`
+}
+
+func (EveKillmailAttacker) TableName() string { return "eve_killmail_attacker" }

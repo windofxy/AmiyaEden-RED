@@ -149,6 +149,7 @@ func GetSystemMenuSeeds() []MenuSeed {
 		{ParentName: "CorpManage", Menu: Menu{Type: MenuTypeMenu, Name: "SkillPlanManage", Path: "skill-plan", Component: "/corp-manage/skill-plan", Title: "menus.corpManage.skillPlanManage", Sort: 100, KeepAlive: true, Status: 1}},
 		{ParentName: "CorpManage", Menu: Menu{Type: MenuTypeMenu, Name: "SkillPlanCheck", Path: "skill-plan-check", Component: "/corp-manage/skill-plan/check", Title: "menus.corpManage.skillPlanCheck", Sort: 90, KeepAlive: true, Status: 1}},
 		{ParentName: "CorpManage", Menu: Menu{Type: MenuTypeMenu, Name: "Structures", Path: "structures", Component: "/corp-manage/structures/index", Title: "menus.corpManage.structures", Sort: 80, KeepAlive: true, Status: 1}},
+		{ParentName: "CorpManage", Menu: Menu{Type: MenuTypeMenu, Name: "FleetBattleIncentive", Path: "fleet-incentive", Component: "/corp-manage/fleet-incentive", Title: "menus.corpManage.fleetIncentive", Sort: 70, KeepAlive: true, Status: 1}},
 
 		// ── System ──
 		{ParentName: "", Menu: Menu{Type: MenuTypeDir, Name: "System", Path: "/system", Component: "/index/index", Title: "menus.system.title", Icon: "ri:user-3-line", Sort: 70, Status: 1}},
@@ -194,7 +195,7 @@ func DefaultRoleMenuMap() map[string][]string {
 			"Dashboard", "Console", "Characters",
 			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips", "EveInfoImplants", "EveInfoFittings", "EveInfoAssets", "EveInfoContracts",
 			"Operation", "Fleets", "FleetConfigs", "FleetDetail", "MyPap", "JoinFleet", "UserSkillPlan",
-			"CorpManage", "SkillPlanManage", "SkillPlanCheck", "Structures",
+			"CorpManage", "SkillPlanManage", "SkillPlanCheck", "Structures", "FleetBattleIncentive",
 			"ShopRoot", "Shop", "Wallet",
 			"SRP", "SrpApply", "SrpManage", "SrpManageReview", "SrpPrices", "SrpPriceAdd", "SrpPriceDelete",
 			"System", "User", "RoleManage", "Menus", "ESIRefresh", "SystemWallet", "AlliancePAP", "CorpNpcKillReport", "AutoRole", "UserCenter", "WebhookSettings", "BasicConfig", "SdeManage", "SdeUpdate",

@@ -21,6 +21,27 @@
               </ElTag>
             </div>
             <div class="flex gap-2">
+              <ElButton v-if="fleet?.br_uuid" size="small" type="info" @click="openBR">
+                {{ $t('fleet.viewBR') }}
+              </ElButton>
+              <ElButton
+                v-roles="['super_admin', 'admin', 'fc']"
+                size="small"
+                type="warning"
+                :loading="brLoading"
+                @click="handleGenerateBR"
+              >
+                {{ $t('fleet.generateBR') }}
+              </ElButton>
+              <ElButton
+                v-roles="['super_admin', 'admin']"
+                size="small"
+                type="success"
+                :loading="leadRewardLoading"
+                @click="handleIssueFCLeadReward"
+              >
+                {{ $t('fleet.issueLeadReward') }}
+              </ElButton>
               <ElButton size="small" @click="handleRefreshAll">
                 <el-icon class="mr-1"><Refresh /></el-icon>
                 {{ $t('common.refresh') }}
@@ -165,7 +186,9 @@
     ElTableColumn,
     ElTag,
     ElButton,
-    ElMessageBox
+    ElMessage,
+    ElMessageBox,
+    ElLoading
   } from 'element-plus'
   import { useI18n } from 'vue-i18n'
   import { useRoute, useRouter } from 'vue-router'
@@ -179,8 +202,10 @@
     deactivateFleetInvite,
     refreshFleetESI,
     fetchMembersWithPap,
-    pingFleet
+    pingFleet,
+    generateFleetBattleReport
   } from '@/api/fleet'
+  import { issueFCLeadReward } from '@/api/fleet-incentive'
   import { useNameResolver } from '@/hooks'
 
   defineOptions({ name: 'FleetDetail' })
@@ -224,6 +249,51 @@
   const syncLoading = ref(false)
   const papIssueLoading = ref(false)
   const pingLoading = ref(false)
+  const brLoading = ref(false)
+  const leadRewardLoading = ref(false)
+
+  // ---- 查看战报 ----
+  const openBR = () => {
+    if (fleet.value?.br_uuid) {
+      window.open(`https://warbeacon.net/br/report/${fleet.value.br_uuid}`, '_blank')
+    }
+  }
+
+  // ---- 生成战报 ----
+  const handleGenerateBR = async () => {
+    brLoading.value = true
+    const loading = ElLoading.service({
+      lock: true,
+      text: t('fleet.brGenerating'),
+      background: 'rgba(0,0,0,0.5)'
+    })
+    try {
+      const res = await generateFleetBattleReport(fleetId.value)
+      ElMessage.success(t('fleet.brGenerated'))
+      if (res?.uuid) {
+        window.open(`https://warbeacon.net/br/report/${res.uuid}`, '_blank')
+      }
+      loadFleet()
+    } catch (e: any) {
+      ElMessage.error(e?.message ?? t('common.error'))
+    } finally {
+      loading.close()
+      brLoading.value = false
+    }
+  }
+
+  // ---- 手动补发 FC 带队奖励 ----
+  const handleIssueFCLeadReward = async () => {
+    leadRewardLoading.value = true
+    try {
+      await issueFCLeadReward(fleetId.value)
+      ElMessage.success(t('fleet.leadRewardIssued'))
+    } catch (e: any) {
+      ElMessage.error(e?.message ?? t('common.error'))
+    } finally {
+      leadRewardLoading.value = false
+    }
+  }
 
   const apiFn = (params: { current: number; size: number }) =>
     fetchMembersWithPap(fleetId.value, params)

@@ -347,7 +347,8 @@
       "skillPlanManage": "技能规划管理",
       "skillPlanCheck": "技能规划检查",
       "skillPlan": "技能规划",
-      "structures": "建筑管理"
+      "structures": "建筑管理",
+      "fleetIncentive": "舰队激励配置"
     }
   },
   "info": {
@@ -776,12 +777,28 @@
       "sendPingHint": "创建后向频道发送舰队行动 Ping",
       "fleetConfig": "舰队配置",
       "fleetConfigPlaceholder": "选择舰队配置（可选）",
-      "autoSrpMode": "自动补损"
+      "autoSrpMode": "自动补损",
+      "lossRatio": "战损比"
     },
     "autoSrp": {
       "disabled": "关闭",
       "submitOnly": "仅提交",
       "autoApprove": "自动审批"
+    },
+    "viewBR": "查看战报",
+    "generateBR": "生成战报",
+    "brGenerating": "正在生成战报，请稍候...",
+    "brGenerated": "战报生成成功",
+    "issueLeadReward": "手动步付带队奖励",
+    "leadRewardIssued": "FC 带队奖励已步付",
+    "manualPap": {
+      "title": "手动添加成员并发放 PAP",
+      "btnTitle": "手动 PAP",
+      "placeholder": "每行一个角色名，支持 EVE 名单格式（忽略舰船/星系等额外字段）",
+      "submit": "添加并发放",
+      "success": "成功发放 {count} 个角色",
+      "noneAdded": "未找到任何匹配角色",
+      "notFound": "以下角色未在系统中找到（尚未登录系统）"
     },
     "importance": {
       "strat_op": "Strat Op",
@@ -1740,6 +1757,27 @@
       "services": "服务",
       "stateTimerEnd": "出增强时间",
       "unanchorsAt": "解锚时间"
+    }
+  },
+  "fleetIncentive": {
+    "title": "舰队作战激励配置",
+    "hint": "《战报激励》：战报生成后自动对全体成员和 FC 发放，每局仅一次；需均为敌方损失 / 我方损失 ≥ 倍率（ 0 = 无条件）。《FC 带队奖励》：PAP 发放后自动对 FC 发放，每局一次，也可在舰队详情页手动补发。",
+    "save": "保存",
+    "saveSuccess": "保存成功",
+    "action": "操作",
+    "fields": {
+      "fleetType": "舰队类型",
+      "enabled": "启用",
+      "multiplier": "胜利倍率",
+      "memberReward": "成员奖励",
+      "fcReward": "FC 奖励（战报）",
+      "fcLeadEnabled": "带队奖励启用",
+      "fcLeadReward": "FC 带队奖励"
+    },
+    "types": {
+      "cta": "CTA",
+      "strat_op": "战略行动",
+      "other": "其他行动"
     }
   }
 }

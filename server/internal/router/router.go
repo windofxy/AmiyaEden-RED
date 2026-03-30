@@ -97,6 +97,8 @@ func RegisterRoutes(r *gin.Engine) {
 			fleetFC.POST("/:id/refresh-esi", fleetH.RefreshFleetESI)
 			fleetFC.POST("/:id/members/sync", fleetH.SyncESIMembers)
 			fleetFC.POST("/:id/pap", fleetH.IssuePap)
+			fleetFC.POST("/:id/manual-pap", fleetH.ManualPap)
+			fleetFC.POST("/:id/br", fleetH.GenerateBattleReport)
 			fleetFC.POST("/:id/invites", fleetH.CreateInvite)
 			fleetFC.GET("/:id/invites", fleetH.GetInvites)
 			fleetFC.DELETE("/invites/:invite_id", fleetH.DeactivateInvite)
@@ -165,6 +167,10 @@ func RegisterRoutes(r *gin.Engine) {
 	npcKillH := handler.NewNpcKillHandler()
 	info.POST("/npc-kills", npcKillH.GetNpcKills)
 	info.POST("/npc-kills/all", npcKillH.GetAllNpcKills)
+
+	// ─── 击杀邮件查询 ───
+	killmailH := handler.NewKillmailHandler()
+	info.POST("/killmails", killmailH.GetCharacterKillmails)
 
 	// ─── 系统钱包（用户端）───
 	walletH := handler.NewSysWalletHandler()
@@ -391,5 +397,18 @@ func RegisterRoutes(r *gin.Engine) {
 	{
 		adminSde.GET("/version", sdeH.GetVersion)
 		adminSde.POST("/update", sdeH.TriggerUpdate)
+	}
+
+	// ─── 军团管理（管理员） ───
+	corpAdmin := auth.Group("/corp", middleware.RequireRole(model.RoleAdmin, model.RoleSuperAdmin))
+	{
+		incentiveH := handler.NewFleetBattleIncentiveHandler()
+		corpIncentive := corpAdmin.Group("/battle-incentives")
+		{
+			corpIncentive.GET("", incentiveH.ListAll)
+			corpIncentive.PUT("/:fleet_type", incentiveH.Update)
+		}
+		// 手动补发 FC 带队奖励
+		corpAdmin.POST("/fleets/:id/lead-reward", incentiveH.IssueFCLeadReward)
 	}
 }

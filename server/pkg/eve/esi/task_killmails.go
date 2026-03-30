@@ -153,7 +153,7 @@ func (t *KillmailsTask) Execute(ctx *TaskContext) error {
 		}
 		isVictim := victimCharID == ctx.CharacterID
 
-		// 在事务中写入 killmail 主记录 + items + 关联
+		// 在事务中写入 killmail 主记录 + items + 攻击者 + 关联
 		err := global.DB.Transaction(func(tx *gorm.DB) error {
 			km := model.EveKillmailList{
 				KillmailID:    ref.KillmailID,
@@ -200,6 +200,41 @@ func (t *KillmailsTask) Execute(ctx *TaskContext) error {
 					if err := tx.Create(&items).Error; err != nil {
 						return err
 					}
+				}
+			}
+
+			// 写入攻击者记录到 eve_killmail_attacker
+			if len(detail.Attackers) > 0 {
+				attackers := make([]model.EveKillmailAttacker, 0, len(detail.Attackers))
+				for _, a := range detail.Attackers {
+					entry := model.EveKillmailAttacker{
+						KillmailID:     ref.KillmailID,
+						DamageDone:     a.DamageDone,
+						FinalBlow:      a.FinalBlow,
+						SecurityStatus: a.SecurityStatus,
+					}
+					if a.CharacterID != nil {
+						entry.CharacterID = *a.CharacterID
+					}
+					if a.CorporationID != nil {
+						entry.CorporationID = *a.CorporationID
+					}
+					if a.AllianceID != nil {
+						entry.AllianceID = *a.AllianceID
+					}
+					if a.FactionID != nil {
+						entry.FactionID = *a.FactionID
+					}
+					if a.ShipTypeID != nil {
+						entry.ShipTypeID = int64(*a.ShipTypeID)
+					}
+					if a.WeaponTypeID != nil {
+						entry.WeaponTypeID = int64(*a.WeaponTypeID)
+					}
+					attackers = append(attackers, entry)
+				}
+				if err := tx.Create(&attackers).Error; err != nil {
+					return err
 				}
 			}
 

@@ -24,6 +24,7 @@ type EveStation = esimodel.EveStation
 type EveKillmailList = esimodel.EveKillmailList
 type EveKillmailItem = esimodel.EveKillmailItem
 type EveCharacterKillmail = esimodel.EveCharacterKillmail
+type EveKillmailAttacker = esimodel.EveKillmailAttacker
 
 type EveCharacterContract = esimodel.EveCharacterContract
 type EveCharacterContractItem = esimodel.EveCharacterContractItem

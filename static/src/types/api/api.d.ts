@@ -391,6 +391,11 @@ declare namespace Api {
       esi_fleet_id: number | null
       fleet_config_id: number | null
       auto_srp_mode: 'disabled' | 'submit_only' | 'auto_approve'
+      br_uuid: string
+      br_team0_loss: number
+      br_team0_value: number
+      br_team1_loss: number
+      br_team1_value: number
       created_at: string
       updated_at: string
       is_joined: boolean
@@ -532,6 +537,31 @@ declare namespace Api {
       solar_system_id: number
       squad_id: number
       wing_id: number
+    }
+  }
+
+  /** 舰队作战激励配置 */
+  namespace FleetIncentive {
+    interface BattleIncentive {
+      id: number
+      fleet_type: 'cta' | 'strat_op' | 'other'
+      enabled: boolean
+      multiplier: number
+      member_reward: number
+      fc_reward: number
+      fc_lead_enabled: boolean
+      fc_lead_reward: number
+      created_at: string
+      updated_at: string
+    }
+
+    interface UpdateBattleIncentiveParams {
+      enabled: boolean
+      multiplier: number
+      member_reward: number
+      fc_reward: number
+      fc_lead_enabled: boolean
+      fc_lead_reward: number
     }
   }
 

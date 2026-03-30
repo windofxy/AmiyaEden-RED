@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -490,6 +491,9 @@ func (s *FleetService) IssuePap(fleetID string, userID uint, userRole string) er
 	// 异步触发新成员的 KM 刷新（只刷新本次 PAP 新增的成员）
 	go s.triggerNewMembersKMRefresh(fleetID)
 
+	// 异步尝试发放 FC 带队奖励（幂等，失败不阻断）
+	go NewFleetBattleIncentiveService().tryIssueFCLeadReward(fleetID)
+
 	return nil
 }
 
@@ -721,6 +725,104 @@ func (s *FleetService) DeactivateInvite(inviteID uint, userID uint, userRole str
 // ─────────────────────────────────────────────
 //  权限判断
 // ─────────────────────────────────────────────
+
+// ─────────────────────────────────────────────
+//  手动添加成员并发放 PAP
+// ─────────────────────────────────────────────
+
+// ManualPapResult 手动 PAP 结果
+type ManualPapResult struct {
+	Added    []string `json:"added"`
+	NotFound []string `json:"not_found"`
+}
+
+// ManualPap 解析文本（每行取首个字段为角色名），将角色加入舰队并发放 PAP。
+// 每行格式可以是 "角色名" 或 "角色名<TAB>舰船<TAB>星系" 等（兼容 EVE 名单格式）。
+func (s *FleetService) ManualPap(fleetID string, userID uint, userRole string, text string) (*ManualPapResult, error) {
+	fleet, err := s.repo.GetByID(fleetID)
+	if err != nil {
+		return nil, errors.New("舰队不存在")
+	}
+	if !s.canManageFleet(fleet, userID, userRole) {
+		return nil, errors.New("权限不足")
+	}
+	if fleet.PapCount <= 0 {
+		return nil, errors.New("PAP 数量必须大于 0")
+	}
+
+	// 解析角色名：每行取第一个空白分隔字段，去重，忽略空行
+	lines := strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n")
+	type entry struct{ orig, key string }
+	var entries []entry
+	seen := make(map[string]bool)
+	for _, line := range lines {
+		fields := strings.Fields(line)
+		if len(fields) == 0 {
+			continue
+		}
+		name := fields[0]
+		key := strings.ToLower(name)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		entries = append(entries, entry{orig: name, key: key})
+	}
+	if len(entries) == 0 {
+		return nil, errors.New("未解析到有效角色名")
+	}
+
+	result := &ManualPapResult{}
+	reason := fmt.Sprintf("舰队手动 PAP 奖励: %s", fleetID)
+
+	for _, e := range entries {
+		char, lookupErr := s.charRepo.GetByCharacterName(e.orig)
+		if lookupErr != nil {
+			result.NotFound = append(result.NotFound, e.orig)
+			continue
+		}
+
+		// 加入舰队成员（已存在则忽略）
+		member := &model.FleetMember{
+			FleetID:       fleetID,
+			CharacterID:   char.CharacterID,
+			CharacterName: char.CharacterName,
+			UserID:        char.UserID,
+		}
+		if addErr := s.repo.AddMember(member); addErr != nil {
+			result.NotFound = append(result.NotFound, e.orig)
+			continue
+		}
+
+		// 事务：创建 PAP 记录 + 钱包充值
+		tx := global.DB.Begin()
+		papLog := model.FleetPapLog{
+			FleetID:     fleetID,
+			CharacterID: char.CharacterID,
+			UserID:      char.UserID,
+			PapCount:    fleet.PapCount,
+			IssuedBy:    userID,
+		}
+		if createErr := tx.Create(&papLog).Error; createErr != nil {
+			tx.Rollback()
+			result.NotFound = append(result.NotFound, e.orig)
+			continue
+		}
+		if walletErr := s.walletSvc.ApplyWalletDeltaTx(tx, char.UserID, fleet.PapCount, reason, model.WalletRefPapReward, fleetID); walletErr != nil {
+			global.Logger.Warn("[Fleet] 手动PAP 钱包更新失败",
+				zap.Uint("user_id", char.UserID),
+				zap.Error(walletErr),
+			)
+		}
+		if commitErr := tx.Commit().Error; commitErr != nil {
+			result.NotFound = append(result.NotFound, e.orig)
+			continue
+		}
+		result.Added = append(result.Added, e.orig)
+	}
+
+	return result, nil
+}
 
 // canManageFleet 判断用户是否有权管理该舰队（admin 或创建者）
 func (s *FleetService) canManageFleet(fleet *model.Fleet, userID uint, userRole string) bool {
