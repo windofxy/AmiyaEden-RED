@@ -194,7 +194,11 @@
       "success": "登录成功",
       "successSub": "欢迎回来，{name}！正在跳转...",
       "error": "登录失败",
-      "retry": "重新登录"
+      "retry": "重新登录",
+      "transferTitle": "角色已绑定至其他账号",
+      "transferSub": "角色 {name} 当前已绑定到另一个账号。是否将其迁移到你的当前账号？若原账号不再持有任何角色，原账号将被删除。",
+      "transferConfirm": "迁移到我的账号",
+      "transferFailed": "迁移失败，请重试"
     },
     "success": {
       "title": "登录成功",

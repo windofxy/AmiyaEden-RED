@@ -74,6 +74,17 @@ export function unbindCharacter(characterId: number) {
 }
 
 /**
+ * 确认将角色从其他账号迁移到当前账号
+ * @param pendingToken 后端颁发的待迁移 token
+ */
+export function confirmCharacterTransfer(pendingToken: string) {
+  return request.post<{ token: string }>({
+    url: '/api/v1/sso/eve/transfer-confirm',
+    data: { token: pendingToken }
+  })
+}
+
+/**
  * 获取当前登录用户信息（从 /me 接口获取并封装成统一格式）
  * @returns 用户信息
  */

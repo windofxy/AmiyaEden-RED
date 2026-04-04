@@ -194,7 +194,11 @@
       "success": "Login successful",
       "successSub": "Welcome back, {name}! Redirecting...",
       "error": "Login failed",
-      "retry": "Try again"
+      "retry": "Try again",
+      "transferTitle": "Character bound to another account",
+      "transferSub": "Character {name} is currently linked to a different account. Do you want to transfer it to your current account? If the original account has no remaining characters, it will be deleted.",
+      "transferConfirm": "Transfer to my account",
+      "transferFailed": "Transfer failed, please try again"
     },
     "success": {
       "title": "Login successful",

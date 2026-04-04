@@ -285,13 +285,19 @@ async function handleDynamicRoutes(
     // 7. 验证工作标签页
     useWorktabStore().validateWorktabs(router)
 
-    // 8. 验证目标路径权限
+    // 8. 验证目标路径权限（静态路由始终放行）
     const { homePath } = useCommon()
-    const { path: validatedPath, hasPermission } = RoutePermissionValidator.validatePath(
-      to.path,
-      menuList,
-      homePath.value || '/'
-    )
+    let hasPermission: boolean
+    let validatedPath: string
+
+    if (isStaticRoute(to.path)) {
+      hasPermission = true
+      validatedPath = to.path
+    } else {
+      const result = RoutePermissionValidator.validatePath(to.path, menuList, homePath.value || '/')
+      hasPermission = result.hasPermission
+      validatedPath = result.path
+    }
 
     // 初始化成功，重置进行中标记
     routeInitInProgress = false

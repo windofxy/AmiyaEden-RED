@@ -43,6 +43,7 @@ func RegisterRoutes(r *gin.Engine) {
 		// ssoAuth.GET("/scopes", ssoH.GetScopes)
 		ssoAuth.GET("/characters", ssoH.GetMyCharacters)
 		ssoAuth.GET("/bind", ssoH.BindLogin)
+		ssoAuth.POST("/transfer-confirm", ssoH.TransferConfirm)
 		ssoAuth.PUT("/primary/:character_id", ssoH.SetPrimary)
 		ssoAuth.DELETE("/characters/:character_id", ssoH.Unbind)
 	}

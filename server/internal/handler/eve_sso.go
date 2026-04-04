@@ -80,10 +80,44 @@ func (h *EveSSOHandler) Callback(c *gin.Context) {
 
 	// 如果有前端重定向地址，则带 token 跳转
 	if result.RedirectURL != "" {
-		c.Redirect(302, result.RedirectURL+"?token="+result.Token)
+		if result.IsRawRedirect {
+			c.Redirect(302, result.RedirectURL)
+		} else {
+			c.Redirect(302, result.RedirectURL+"?token="+result.Token)
+		}
 		return
 	}
 
+	response.OK(c, gin.H{
+		"token":     result.Token,
+		"user":      result.User,
+		"character": result.Character,
+	})
+}
+
+// TransferConfirm 确认将角色从其他账号迁移到当前账号
+//
+// POST /api/v1/sso/eve/transfer-confirm
+func (h *EveSSOHandler) TransferConfirm(c *gin.Context) {
+	userID := middleware.GetUserID(c)
+	if userID == 0 {
+		response.Fail(c, response.CodeUnauthorized, "未登录")
+		return
+	}
+
+	var req struct {
+		Token string `json:"token" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, response.CodeParamError, "缺少 token 参数")
+		return
+	}
+
+	result, err := h.svc.ConfirmTransfer(c.Request.Context(), req.Token, userID)
+	if err != nil {
+		response.Fail(c, response.CodeBizError, err.Error())
+		return
+	}
 	response.OK(c, gin.H{
 		"token":     result.Token,
 		"user":      result.User,
