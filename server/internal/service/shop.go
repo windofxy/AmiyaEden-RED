@@ -139,7 +139,7 @@ func (s *ShopService) BuyProduct(userID uint, req *BuyRequest) (*model.ShopOrder
 	}
 
 	if product.NeedApproval {
-		// 需要审批：订单状态为 pending，不扣款
+		// 需要审批：订单状态为 pending，先扣款，审批不通过再退还
 		order.Status = model.OrderStatusPending
 	} else {
 		// 即时购买：先标记为 paid
@@ -163,6 +163,15 @@ func (s *ShopService) BuyProduct(userID uint, req *BuyRequest) (*model.ShopOrder
 			order.Status = model.OrderStatusInsufficientFund
 			_ = s.repo.UpdateOrder(order)
 			return nil, err
+		}
+	} else {
+		// 需要审批 — 立即扣款，审批不通过再退还
+		reason := fmt.Sprintf("购买商品: %s x%d（待审批扣款）", product.Name, req.Quantity)
+		refID := fmt.Sprintf("order:%s", order.OrderNo)
+		if err := s.walletSvc.DebitUser(userID, totalPrice, reason, model.WalletRefShopBuy, refID); err != nil {
+			order.Status = model.OrderStatusInsufficientFund
+			_ = s.repo.UpdateOrder(order)
+			return nil, fmt.Errorf("扣款失败: %w", err)
 		}
 	}
 
@@ -346,28 +355,6 @@ func (s *ShopService) AdminApproveOrder(orderID uint, operatorID uint, remark st
 		return nil, errors.New("关联商品不存在")
 	}
 
-	// 检查用户余额
-	wallet, err := s.walletSvc.GetMyWallet(order.UserID)
-	if err != nil {
-		return nil, fmt.Errorf("获取用户钱包失败: %w", err)
-	}
-	if wallet.Balance < order.TotalPrice {
-		order.Status = model.OrderStatusInsufficientFund
-		now := time.Now()
-		order.ReviewedBy = &operatorID
-		order.ReviewedAt = &now
-		order.ReviewRemark = "审批时用户余额不足"
-		_ = s.repo.UpdateOrder(order)
-		return nil, errors.New("用户余额不足")
-	}
-
-	// 扣款
-	reason := fmt.Sprintf("购买商品: %s x%d（审批通过）", order.ProductName, order.Quantity)
-	refID := fmt.Sprintf("order:%s", order.OrderNo)
-	if err := s.walletSvc.DebitUser(order.UserID, order.TotalPrice, reason, model.WalletRefShopBuy, refID); err != nil {
-		return nil, fmt.Errorf("扣款失败: %w", err)
-	}
-
 	// 兑换码类商品 — 生成兑换码
 	if product.Type == model.ProductTypeRedeem {
 		for i := 0; i < order.Quantity; i++ {
@@ -414,6 +401,13 @@ func (s *ShopService) AdminRejectOrder(orderID uint, operatorID uint, remark str
 	if err == nil && product.Stock >= 0 {
 		product.Stock += order.Quantity
 		_ = s.repo.UpdateProduct(product)
+	}
+
+	// 退还已扣款项
+	refundReason := fmt.Sprintf("商品订单退款: %s x%d（审批拒绝）", order.ProductName, order.Quantity)
+	refID := fmt.Sprintf("order:%s", order.OrderNo)
+	if err := s.walletSvc.CreditUser(order.UserID, order.TotalPrice, refundReason, model.WalletRefShopRefund, refID); err != nil {
+		return nil, fmt.Errorf("退款失败: %w", err)
 	}
 
 	now := time.Now()

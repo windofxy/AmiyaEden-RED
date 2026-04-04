@@ -75,6 +75,7 @@ const (
 	WalletRefAdminAdjust  = "admin_adjust"   // 管理员调整
 	WalletRefSrpPayout    = "srp_payout"     // SRP 补损发放
 	WalletRefShopBuy      = "shop_purchase"  // 商城购买
+	WalletRefShopRefund   = "shop_refund"    // 商城退款（审批拒绝）
 	WalletRefLotteryDraw  = "lottery_draw"   // 抽奖消费
 	WalletRefBrIncentive  = "br_incentive"   // 战报胜利激励奖励
 	WalletRefFCLeadReward = "fc_lead_reward" // FC 带队奖励
