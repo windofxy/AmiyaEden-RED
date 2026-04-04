@@ -6,6 +6,7 @@ import (
 	"amiya-eden/internal/service"
 	"amiya-eden/pkg/response"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -151,6 +152,17 @@ func (h *SrpHandler) ListApplications(c *gin.Context) {
 	if charIDStr := c.Query("character_id"); charIDStr != "" {
 		if cid, err := strconv.ParseInt(charIDStr, 10, 64); err == nil {
 			filter.CharacterID = &cid
+		}
+	}
+	if startStr := c.Query("start_time"); startStr != "" {
+		if t, err := time.Parse("2006-01-02", startStr); err == nil {
+			filter.StartTime = &t
+		}
+	}
+	if endStr := c.Query("end_time"); endStr != "" {
+		if t, err := time.Parse("2006-01-02", endStr); err == nil {
+			endOfDay := t.Add(24*time.Hour - time.Second)
+			filter.EndTime = &endOfDay
 		}
 	}
 

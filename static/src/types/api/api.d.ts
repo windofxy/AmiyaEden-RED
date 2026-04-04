@@ -827,6 +827,8 @@ declare namespace Api {
       character_id: number
       review_status: string
       payout_status: string
+      start_time: string
+      end_time: string
     }> &
       Partial<Api.Common.CommonSearchParams>
 

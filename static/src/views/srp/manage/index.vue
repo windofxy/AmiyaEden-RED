@@ -34,6 +34,16 @@
         >
           <ElOption v-for="f in fleets" :key="f.id" :label="formatFleetLabel(f)" :value="f.id" />
         </ElSelect>
+        <ElDatePicker
+          v-model="filter.dateRange"
+          type="daterange"
+          :range-separator="$t('srp.manage.dateSep')"
+          :start-placeholder="$t('srp.manage.dateStart')"
+          :end-placeholder="$t('srp.manage.dateEnd')"
+          value-format="YYYY-MM-DD"
+          style="width: 240px"
+          @change="handleSearch"
+        />
         <ElButton type="primary" @click="handleSearch">{{ $t('srp.manage.searchBtn') }}</ElButton>
         <ElButton @click="resetFilter">{{ $t('srp.manage.resetBtn') }}</ElButton>
       </div>
@@ -42,14 +52,9 @@
     <ElCard class="art-table-card" shadow="never">
       <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
         <template #left>
-          <ArtExcelExport
-            :data="exportManageData"
-            :headers="manageExportHeaders"
-            :filename="`srp-manage_${new Date().toLocaleDateString()}`"
-            sheet-name="补损申请"
-            :button-text="$t('srp.manage.exportBtn')"
-            type="success"
-          />
+          <ElButton type="success" :loading="exportLoading" @click="handleExportAll">
+            {{ $t('srp.manage.exportBtn') }}
+          </ElButton>
         </template>
       </ArtTableHeader>
 
@@ -206,6 +211,7 @@
     ElButton,
     ElSelect,
     ElOption,
+    ElDatePicker,
     ElDialog,
     ElForm,
     ElFormItem,
@@ -217,11 +223,11 @@
   } from 'element-plus'
   import { useTable } from '@/hooks/core/useTable'
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
-  import ArtExcelExport from '@/components/core/forms/art-excel-export/index.vue'
   import KmPreviewDialog from '@/components/business/KmPreviewDialog.vue'
   import { fetchFleetList } from '@/api/fleet'
   import {
     fetchApplicationList,
+    exportAllApplications,
     reviewApplication,
     payoutApplication,
     openInfoWindow
@@ -229,6 +235,8 @@
   import { useNameResolver } from '@/hooks'
   import { useUserStore } from '@/store/modules/user'
   import { CopyDocument } from '@element-plus/icons-vue'
+  import * as XLSX from 'xlsx'
+  import FileSaver from 'file-saver'
 
   defineOptions({ name: 'SrpManage' })
 
@@ -247,7 +255,12 @@
     }
   }
 
-  const filter = reactive({ review_status: 'pending', payout_status: '', fleet_id: '' })
+  const filter = reactive({
+    review_status: 'pending',
+    payout_status: '',
+    fleet_id: '',
+    dateRange: null as [string, string] | null
+  })
 
   type SrpApp = Api.Srp.Application
   type TagType = 'primary' | 'success' | 'warning' | 'info' | 'danger'
@@ -524,7 +537,9 @@
     Object.assign(searchParams, {
       review_status: filter.review_status || undefined,
       payout_status: filter.payout_status || undefined,
-      fleet_id: filter.fleet_id || undefined
+      fleet_id: filter.fleet_id || undefined,
+      start_time: filter.dateRange?.[0] || undefined,
+      end_time: filter.dateRange?.[1] || undefined
     })
     getData()
   }
@@ -532,10 +547,13 @@
     filter.review_status = ''
     filter.payout_status = ''
     filter.fleet_id = ''
+    filter.dateRange = null
     Object.assign(searchParams, {
       review_status: undefined,
       payout_status: undefined,
-      fleet_id: undefined
+      fleet_id: undefined,
+      start_time: undefined,
+      end_time: undefined
     })
     getData()
   }
@@ -680,46 +698,65 @@
       v ?? 0
     )
 
-  // ─── 导出 ───
-  const manageExportHeaders = {
-    character_name: '角色',
-    ship_name: '舰船',
-    solar_system: '星系',
-    killmail_id: 'KillID',
-    killmail_time: 'KM时间',
-    corporation: '军团',
-    alliance: '联盟',
-    fleet_title: '关联舰队',
-    fleet_fc_name: 'FC',
-    note: '备注',
-    recommended_amount: '推荐金额',
-    final_amount: '最终金额',
-    review_status: '审批状态',
-    review_note: '审批备注',
-    payout_status: '发放状态'
+  // ─── 导出（全量，基于当前筛选条件）───
+  const exportLoading = ref(false)
+
+  const buildExportRow = (app: Api.Srp.Application) => ({
+    [t('srp.manage.columns.character')]: app.character_name,
+    [t('srp.manage.columns.ship')]: getName(app.ship_type_id, `TypeID: ${app.ship_type_id}`),
+    [t('srp.manage.columns.system')]: getName(app.solar_system_id, String(app.solar_system_id)),
+    [t('srp.manage.columns.killId')]: app.killmail_id,
+    [t('srp.manage.columns.kmTime')]: formatTime(app.killmail_time),
+    [t('srp.manage.columns.corporation')]: getName(
+      app.corporation_id,
+      app.corporation_id ? `ID: ${app.corporation_id}` : '-'
+    ),
+    [t('srp.manage.columns.alliance')]: getName(
+      app.alliance_id,
+      app.alliance_id ? `ID: ${app.alliance_id}` : '-'
+    ),
+    [t('srp.manage.columns.fleet')]: app.fleet_title || '-',
+    FC: app.fleet_fc_name || '-',
+    [t('srp.manage.columns.note')]: app.note || '-',
+    [t('srp.manage.columns.recommendedAmount')]: app.recommended_amount,
+    [t('srp.manage.columns.finalAmount')]: app.final_amount,
+    [t('srp.manage.columns.review')]: reviewStatusLabel(app.review_status),
+    [t('srp.manage.columns.reviewNote')]: app.review_note || '-',
+    [t('srp.manage.columns.payout')]:
+      app.payout_status === 'paid' ? t('srp.status.paid') : t('srp.status.unpaid')
+  })
+
+  const handleExportAll = async () => {
+    exportLoading.value = true
+    try {
+      const res = await exportAllApplications({
+        review_status: filter.review_status || undefined,
+        payout_status: filter.payout_status || undefined,
+        fleet_id: filter.fleet_id || undefined,
+        start_time: filter.dateRange?.[0] || undefined,
+        end_time: filter.dateRange?.[1] || undefined
+      })
+      const list = res?.list ?? []
+      if (!list.length) {
+        ElMessage.warning(t('srp.manage.exportEmpty'))
+        return
+      }
+      await resolveManageNames(list)
+      const rows = list.map(buildExportRow)
+      const ws = XLSX.utils.json_to_sheet(rows)
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, t('srp.manage.exportSheet'))
+      const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+      FileSaver.saveAs(
+        new Blob([buf], { type: 'application/octet-stream' }),
+        `srp-manage_${new Date().toLocaleDateString()}.xlsx`
+      )
+    } catch {
+      /* handled */
+    } finally {
+      exportLoading.value = false
+    }
   }
-  const exportManageData = computed(() =>
-    data.value.map((app) => ({
-      character_name: app.character_name,
-      ship_name: getName(app.ship_type_id, `TypeID: ${app.ship_type_id}`),
-      solar_system: getName(app.solar_system_id, String(app.solar_system_id)),
-      killmail_id: app.killmail_id,
-      killmail_time: formatTime(app.killmail_time),
-      corporation: getName(
-        app.corporation_id,
-        app.corporation_id ? `ID: ${app.corporation_id}` : '-'
-      ),
-      alliance: getName(app.alliance_id, app.alliance_id ? `ID: ${app.alliance_id}` : '-'),
-      fleet_title: app.fleet_title || '-',
-      fleet_fc_name: app.fleet_fc_name || '-',
-      note: app.note || '-',
-      recommended_amount: app.recommended_amount,
-      final_amount: app.final_amount,
-      review_status: reviewStatusLabel(app.review_status),
-      review_note: app.review_note || '-',
-      payout_status: app.payout_status === 'paid' ? t('srp.status.paid') : t('srp.status.unpaid')
-    }))
-  )
 
   /* ── KM 预览 ── */
   const kmPreviewVisible = ref(false)

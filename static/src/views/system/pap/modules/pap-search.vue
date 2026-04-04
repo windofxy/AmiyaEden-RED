@@ -73,6 +73,7 @@
     (e: 'search', params: Record<string, any>): void
     (e: 'reset'): void
     (e: 'fetch'): void
+    (e: 'import', rows: Record<string, unknown>[]): void
   }
 
   const props = withDefaults(defineProps<Props>(), { fetching: false })

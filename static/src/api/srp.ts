@@ -76,6 +76,14 @@ export function fetchApplicationList(params?: Api.Srp.ApplicationSearchParams) {
   })
 }
 
+/** 导出全部申请（忽略分页，最多 10000 条） */
+export function exportAllApplications(params?: Omit<Api.Srp.ApplicationSearchParams, 'current' | 'size'>) {
+  return request.get<Api.Srp.ApplicationList>({
+    url: '/api/v1/srp/applications',
+    params: { ...params, current: 1, size: 10000 }
+  })
+}
+
 /** 获取单条申请详情 */
 export function fetchApplicationDetail(id: number) {
   return request.get<Api.Srp.Application>({

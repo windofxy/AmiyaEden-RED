@@ -3,6 +3,7 @@ package repository
 import (
 	"amiya-eden/global"
 	"amiya-eden/internal/model"
+	"time"
 )
 
 // SrpRepository SRP 数据访问层
@@ -81,6 +82,8 @@ type SrpApplicationFilter struct {
 	FleetID      *string
 	ReviewStatus string
 	PayoutStatus string
+	StartTime    *time.Time
+	EndTime      *time.Time
 }
 
 // ListApplications 分页查询申请列表
@@ -103,6 +106,12 @@ func (r *SrpRepository) ListApplications(page, pageSize int, filter SrpApplicati
 	}
 	if filter.PayoutStatus != "" {
 		db = db.Where("payout_status = ?", filter.PayoutStatus)
+	}
+	if filter.StartTime != nil {
+		db = db.Where("killmail_time >= ?", *filter.StartTime)
+	}
+	if filter.EndTime != nil {
+		db = db.Where("killmail_time <= ?", *filter.EndTime)
 	}
 
 	if err := db.Count(&total).Error; err != nil {
