@@ -10,11 +10,19 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm/clause"
 )
+
+// structureInflight 防止同一建筑 ID 同时发起多个 ESI 请求
+var structureInflight sync.Map
+
+// structureForbidden 记录所有角色都返回 403 的建筑 ID，避免无效重试
+// 值为 time.Time，表示禁止期截止时间（1 小时）
+var structureForbidden sync.Map
 
 // ─────────────────────────────────────────────
 //  请求 & 响应结构
@@ -312,24 +320,44 @@ func (s *AssetService) resolveStationName(stationID int64) string {
 }
 
 // resolveStructureName 查询玩家建筑名称
+// 有本地缓存则直接返回；否则立即返回 Structure-{id}，并在后台异步拉取/入库
 func (s *AssetService) resolveStructureName(chars []model.EveCharacter, structureID int64) string {
-	// 先查本地缓存
+	// 1. 检查负向缓存（之前所有角色都 403 过）
+	if v, ok := structureForbidden.Load(structureID); ok {
+		if until, ok := v.(time.Time); ok && time.Now().Before(until) {
+			return fmt.Sprintf("Structure-%d", structureID)
+		}
+		// 已过期，清除以允许重试
+		structureForbidden.Delete(structureID)
+	}
+
+	// 2. 查本地 DB 缓存
 	structure, err := s.assetRepo.GetStructureByID(structureID)
 	if err == nil && structure.StructureName != "" {
 		return structure.StructureName
 	}
 
-	// 尝试用任一角色的 token 从 ESI 获取
-	for _, c := range chars {
-		accessToken, err := s.ssoSvc.GetValidToken(context.Background(), c.CharacterID)
-		if err != nil {
-			continue
-		}
-		name := s.fetchAndCacheStructure(c.CharacterID, structureID, accessToken)
-		if name != "" && name != fmt.Sprintf("Structure-%d", structureID) {
-			return name
-		}
+	// 3. 防重入：同一 structureID 只允许一个 goroutine 在后台拉取
+	if _, loaded := structureInflight.LoadOrStore(structureID, true); loaded {
+		return fmt.Sprintf("Structure-%d", structureID)
 	}
+
+	go func() {
+		defer structureInflight.Delete(structureID)
+		placeholder := fmt.Sprintf("Structure-%d", structureID)
+		for _, c := range chars {
+			accessToken, err := s.ssoSvc.GetValidToken(context.Background(), c.CharacterID)
+			if err != nil {
+				continue
+			}
+			name := s.fetchAndCacheStructure(c.CharacterID, structureID, accessToken)
+			if name != "" && name != placeholder {
+				return
+			}
+		}
+		// 所有角色均失败（403 或其他），标记为 1 小时内不再重试
+		structureForbidden.Store(structureID, time.Now().Add(time.Hour))
+	}()
 
 	return fmt.Sprintf("Structure-%d", structureID)
 }
