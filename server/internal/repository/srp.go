@@ -127,3 +127,22 @@ func (r *SrpRepository) ListMyApplications(userID uint, page, pageSize int) ([]m
 	uid := &userID
 	return r.ListApplications(page, pageSize, SrpApplicationFilter{UserID: uid})
 }
+
+// ListSubmittedKillmailIDs 从给定的 killmail_id 列表中，返回已存在 SRP 申请的 killmail_id 集合
+func (r *SrpRepository) ListSubmittedKillmailIDs(killmailIDs []int64) (map[int64]bool, error) {
+	result := make(map[int64]bool)
+	if len(killmailIDs) == 0 {
+		return result, nil
+	}
+	var ids []int64
+	err := global.DB.Model(&model.SrpApplication{}).
+		Where("killmail_id IN ?", killmailIDs).
+		Pluck("killmail_id", &ids).Error
+	if err != nil {
+		return result, err
+	}
+	for _, id := range ids {
+		result[id] = true
+	}
+	return result, nil
+}

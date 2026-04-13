@@ -325,7 +325,9 @@
 
   const showNoteArea = computed(() => form.fleet_id === OTHER_ACTION)
   const noteRequired = computed(() => form.fleet_id === OTHER_ACTION || !form.fleet_id)
-  const submittedKmIds = computed(() => new Set((data.value ?? []).map((a) => a.killmail_id)))
+  const submittedKmIds = computed(
+    () => new Set(fleetKillmails.value.filter((km) => km.srped).map((km) => km.killmail_id))
+  )
 
   // 选中的舰队详情（非"__other__"且非空时显示）
   const selectedFleetDetail = computed(() => {

@@ -421,6 +421,7 @@ type FleetKillmailItem struct {
 	SolarSystemID int64     `json:"solar_system_id"`
 	CharacterID   int64     `json:"character_id"`
 	VictimName    string    `json:"victim_name"`
+	Srped         bool      `json:"srped"`
 }
 
 // GetMyKillmails 获取当前用户所有角色作为受害者的 KM 列表（不限舰队，最近 200 条）
@@ -496,6 +497,17 @@ func (s *SrpService) GetMyKillmails(userID uint, characterID int64) ([]FleetKill
 			VictimName:    charNameMap[km.CharacterID],
 		})
 	}
+
+	// 标记已提交过 SRP 申请的 KM
+	kmIDList := make([]int64, 0, len(result))
+	for _, item := range result {
+		kmIDList = append(kmIDList, item.KillmailID)
+	}
+	submittedSet, _ := s.repo.ListSubmittedKillmailIDs(kmIDList)
+	for i := range result {
+		result[i].Srped = submittedSet[result[i].KillmailID]
+	}
+
 	return result, nil
 }
 
@@ -573,6 +585,17 @@ func (s *SrpService) GetFleetKillmails(userID uint, fleetID string) ([]FleetKill
 			VictimName:    name,
 		})
 	}
+
+	// 标记已提交过 SRP 申请的 KM
+	kmIDList := make([]int64, 0, len(result))
+	for _, item := range result {
+		kmIDList = append(kmIDList, item.KillmailID)
+	}
+	submittedSet, _ := s.repo.ListSubmittedKillmailIDs(kmIDList)
+	for i := range result {
+		result[i].Srped = submittedSet[result[i].KillmailID]
+	}
+
 	return result, nil
 }
 

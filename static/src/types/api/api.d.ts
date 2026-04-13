@@ -877,6 +877,7 @@ declare namespace Api {
       solar_system_id: number
       character_id: number
       victim_name: string
+      srped: boolean
     }
 
     /** KM 装配详情请求 */
