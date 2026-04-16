@@ -1,0 +1,131 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-backend:
+    name: Build Backend Binary
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache: true
+          cache-dependency-path: server/go.sum
+
+      - name: Build linux/amd64
+        working-directory: server
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: amd64
+        run: |
+          go build \
+            -ldflags="-s -w -X main.Version=${{ github.ref_name }}" \
+            -o ../dist/amiya-eden-server-linux-amd64 \
+            ./main.go
+
+      - name: Build linux/arm64
+        working-directory: server
+        env:
+          CGO_ENABLED: '0'
+          GOOS: linux
+          GOARCH: arm64
+        run: |
+          go build \
+            -ldflags="-s -w -X main.Version=${{ github.ref_name }}" \
+            -o ../dist/amiya-eden-server-linux-arm64 \
+            ./main.go
+
+      - name: Upload backend artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-binaries
+          path: dist/
+
+  build-frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install dependencies
+        working-directory: static
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: static
+        env:
+          VITE_API_URL: /
+          VITE_BASE_URL: /
+          VITE_ACCESS_MODE: backend
+          VITE_DROP_CONSOLE: 'true'
+        run: pnpm build
+
+      - name: Package dist as tar.gz
+        working-directory: static
+        # Archive the contents of dist/ directly (no parent directory prefix)
+        # so the backend can extract straight into the html root.
+        run: tar -czf ../dist/amiya-eden-frontend-dist.tar.gz -C dist .
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/amiya-eden-frontend-dist.tar.gz
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs:
+      - build-backend
+      - build-frontend
+
+    steps:
+      - name: Download backend artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-binaries
+          path: dist/
+
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+
+      - name: Create Release and upload assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist/amiya-eden-server-linux-amd64
+            dist/amiya-eden-server-linux-arm64
+            dist/amiya-eden-frontend-dist.tar.gz

@@ -1757,6 +1757,16 @@ declare namespace Api {
       callback_url?: string
       scopes?: string
     }
+
+    /** 服务器更新检查结果 */
+    interface ServerUpdateInfo {
+      current_version: string
+      latest_version: string
+      has_update: boolean
+      release_notes: string
+      download_size: number
+      frontend_download_size: number
+    }
   }
 
   /** 军团建筑管理 */

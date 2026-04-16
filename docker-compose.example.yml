@@ -1,7 +1,7 @@
 services:
-    backend:
-        image: newdoublex/amiya-eden-backend:latest
-        container_name: amiya-eden-backend
+    app:
+        image: newdoublex/amiya-eden:latest
+        container_name: amiya-eden
         restart: unless-stopped
         extra_hosts:
             - "host.docker.internal:host-gateway"
@@ -14,8 +14,11 @@ services:
             - /root/dockers/amiya-eden/logs:/app/logs
             # 持久化数据
             - /root/dockers/amiya-eden/uploads:/app/uploads
+            # 前端静态文件持久化：首次启动时由 entrypoint 从镜像自动初始化，
+            # 之后可通过系统设置 → 服务器更新 热更新前端，无需重建镜像。
+            - /root/dockers/amiya-eden/html:/usr/share/nginx/html
         ports:
-            - "8080:8080"
+            - "80:80"
         networks:
             - amiya-eden-network
 
@@ -42,15 +45,6 @@ services:
             - TZ=Asia/Shanghai
         volumes:
             - /root/dockers/amiya-eden/database:/var/lib/postgresql/data
-        networks:
-            - amiya-eden-network
-
-    frontend:
-        image: newdoublex/amiya-eden-frontend:latest
-        container_name: amiya-eden-frontend
-        restart: unless-stopped
-        ports:
-            - "80:80"
         networks:
             - amiya-eden-network
 

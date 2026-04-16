@@ -27,3 +27,23 @@ export function updateSeatConfig(data: Api.SysConfig.UpdateSeatConfigParams) {
     data
   })
 }
+
+// ─── 服务器更新 ───
+
+export function checkServerUpdate() {
+  return request.get<Api.SysConfig.ServerUpdateInfo>({
+    url: '/api/v1/system/server-update/check'
+  })
+}
+
+export function performServerUpgrade() {
+  return request.post<{ message: string }>({
+    url: '/api/v1/system/server-update/upgrade'
+  })
+}
+
+export function performFrontendUpgrade() {
+  return request.post<{ message: string }>({
+    url: '/api/v1/system/server-update/upgrade-frontend'
+  })
+}

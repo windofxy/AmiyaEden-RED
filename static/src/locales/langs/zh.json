@@ -1725,6 +1725,21 @@
       "scopesPlaceholder": "空格分隔的 OAuth scopes",
       "save": "保存",
       "saveSuccess": "SeAT 配置已保存"
+    },
+    "serverUpdate": {
+      "title": "服务器更新",
+      "currentVersion": "当前版本",
+      "latestVersion": "最新版本",
+      "backendSize": "后端包大小",
+      "frontendSize": "前端包大小",
+      "releaseNotes": "更新日志",
+      "checkUpdate": "检查更新",
+      "upgradeBackend": "升级后端服务",
+      "upgradeFrontend": "升级前端页面",
+      "alreadyLatest": "当前已是最新版本",
+      "upgradeStarted": "升级包已下载完成，服务正在重启中...",
+      "upgradingTip": "服务正在重启，请稍候再尝试访问。若长时间无法访问，请登录服务器检查日志。",
+      "frontendUpgradeSuccess": "前端资源已更新，刷新页面即可生效。"
     }
   },
   "skillPlan": {

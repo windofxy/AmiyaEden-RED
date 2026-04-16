@@ -43,3 +43,7 @@ sde:
 alliance_pap:
   base_url: "http://jp.newdoublex.space:25220"  # 联盟 PAP API 地址
   api_key: ""                                    # 联盟 PAP API Key
+
+github:
+  owner: "zifox666"   # GitHub 仓库所有者，用于服务器自动更新
+  repo: "AmiyaEden"   # GitHub 仓库名称，用于服务器自动更新

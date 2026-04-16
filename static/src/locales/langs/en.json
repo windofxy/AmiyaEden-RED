@@ -1724,6 +1724,21 @@
       "scopesPlaceholder": "Space-separated OAuth scopes",
       "save": "Save",
       "saveSuccess": "SeAT configuration saved"
+    },
+    "serverUpdate": {
+      "title": "Server Update",
+      "currentVersion": "Current Version",
+      "latestVersion": "Latest Version",
+      "backendSize": "Backend Size",
+      "frontendSize": "Frontend Size",
+      "releaseNotes": "Release Notes",
+      "checkUpdate": "Check for Updates",
+      "upgradeBackend": "Upgrade Backend",
+      "upgradeFrontend": "Upgrade Frontend",
+      "alreadyLatest": "Already on the latest version",
+      "upgradeStarted": "Upgrade downloaded, server is restarting...",
+      "upgradingTip": "Server is restarting. Please wait a moment before accessing again. If unavailable for a long time, check server logs.",
+      "frontendUpgradeSuccess": "Frontend updated. Refresh the page to see changes."
     }
   },
   "skillPlan": {

@@ -39,6 +39,68 @@
       </ElForm>
     </ElCard>
 
+    <!-- 服务器更新 -->
+    <ElCard shadow="never" class="mt-4">
+      <template #header>
+        <h2 class="section-title">{{ $t('system.serverUpdate.title') }}</h2>
+      </template>
+
+      <ElDescriptions :column="2" border class="mb-4" v-loading="checkingUpdate">
+        <ElDescriptionsItem :label="$t('system.serverUpdate.currentVersion')">
+          <ElTag type="info">{{ updateInfo?.current_version ?? '-' }}</ElTag>
+        </ElDescriptionsItem>
+        <ElDescriptionsItem :label="$t('system.serverUpdate.latestVersion')">
+          <ElTag :type="updateInfo?.has_update ? 'warning' : 'success'">
+            {{ updateInfo?.latest_version ?? '-' }}
+          </ElTag>
+        </ElDescriptionsItem>
+        <ElDescriptionsItem :label="$t('system.serverUpdate.backendSize')">
+          {{ updateInfo ? formatBytes(updateInfo.download_size) : '-' }}
+        </ElDescriptionsItem>
+        <ElDescriptionsItem :label="$t('system.serverUpdate.frontendSize')">
+          {{ updateInfo ? formatBytes(updateInfo.frontend_download_size) : '-' }}
+        </ElDescriptionsItem>
+        <ElDescriptionsItem
+          v-if="updateInfo?.release_notes"
+          :label="$t('system.serverUpdate.releaseNotes')"
+          :span="2"
+        >
+          <pre class="release-notes">{{ updateInfo.release_notes }}</pre>
+        </ElDescriptionsItem>
+      </ElDescriptions>
+
+      <ElSpace>
+        <ElButton :loading="checkingUpdate" @click="handleCheckUpdate">
+          {{ $t('system.serverUpdate.checkUpdate') }}
+        </ElButton>
+        <ElButton
+          v-if="updateInfo?.has_update"
+          type="danger"
+          :loading="upgrading"
+          @click="handleUpgrade"
+        >
+          {{ $t('system.serverUpdate.upgradeBackend') }}
+        </ElButton>
+        <ElButton
+          v-if="updateInfo?.has_update"
+          type="warning"
+          :loading="upgradingFrontend"
+          @click="handleFrontendUpgrade"
+        >
+          {{ $t('system.serverUpdate.upgradeFrontend') }}
+        </ElButton>
+      </ElSpace>
+
+      <ElAlert
+        v-if="upgrading"
+        class="mt-4"
+        type="warning"
+        :title="$t('system.serverUpdate.upgradingTip')"
+        show-icon
+        :closable="false"
+      />
+    </ElCard>
+
     <!-- SeAT 配置 -->
     <ElCard shadow="never" class="mt-4">
       <template #header>
@@ -117,10 +179,15 @@
     ElInputNumber,
     ElButton,
     ElSwitch,
-    ElMessage
+    ElMessage,
+    ElDescriptions,
+    ElDescriptionsItem,
+    ElTag,
+    ElSpace,
+    ElAlert
   } from 'element-plus'
   import { useSysConfigStore } from '@/store/modules/sys-config'
-  import { fetchSeatConfig, updateSeatConfig } from '@/api/sys-config'
+  import { fetchSeatConfig, updateSeatConfig, checkServerUpdate, performServerUpgrade, performFrontendUpgrade } from '@/api/sys-config'
 
   defineOptions({ name: 'BasicConfig' })
 
@@ -134,6 +201,56 @@
     corp_id: sysConfigStore.config.corp_id,
     site_title: sysConfigStore.config.site_title
   })
+
+  // ─── 服务器更新 ───
+  const checkingUpdate = ref(false)
+  const upgrading = ref(false)
+  const upgradingFrontend = ref(false)
+  const updateInfo = ref<Api.SysConfig.ServerUpdateInfo | null>(null)
+
+  const formatBytes = (bytes: number): string => {
+    if (!bytes) return '-'
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+  }
+
+  const handleCheckUpdate = async () => {
+    checkingUpdate.value = true
+    try {
+      updateInfo.value = await checkServerUpdate()
+      if (!updateInfo.value.has_update) {
+        ElMessage.success(t('system.serverUpdate.alreadyLatest'))
+      }
+    } catch {
+      /* empty */
+    } finally {
+      checkingUpdate.value = false
+    }
+  }
+
+  const handleUpgrade = async () => {
+    upgrading.value = true
+    try {
+      await performServerUpgrade()
+      ElMessage.success(t('system.serverUpdate.upgradeStarted'))
+    } catch {
+      upgrading.value = false
+    }
+    // keep upgrading=true: server is restarting, button stays disabled
+  }
+
+  const handleFrontendUpgrade = async () => {
+    upgradingFrontend.value = true
+    try {
+      await performFrontendUpgrade()
+      ElMessage.success(t('system.serverUpdate.frontendUpgradeSuccess'))
+    } catch {
+      /* empty */
+    } finally {
+      upgradingFrontend.value = false
+    }
+  }
 
   // ─── SeAT 配置 ───
   const loadingSeat = ref(false)
@@ -214,6 +331,7 @@
   onMounted(() => {
     loadConfig()
     loadSeatConfig()
+    handleCheckUpdate()
   })
 </script>
 
@@ -222,5 +340,15 @@
     font-size: 15px;
     font-weight: 600;
     margin: 0;
+  }
+
+  .release-notes {
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: inherit;
+    font-size: 13px;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
   }
 </style>

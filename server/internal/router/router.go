@@ -264,6 +264,15 @@ func RegisterRoutes(r *gin.Engine) {
 	admin.GET("/basic-config", sysConfigH.GetBasicConfig)
 	admin.PUT("/basic-config", sysConfigH.UpdateBasicConfig)
 
+	// 服务器更新（管理员）
+	serverUpdateH := handler.NewServerUpdateHandler()
+	serverUpdate := admin.Group("/server-update")
+	{
+		serverUpdate.GET("/check", serverUpdateH.CheckUpdate)
+		serverUpdate.POST("/upgrade", serverUpdateH.PerformUpgrade)
+		serverUpdate.POST("/upgrade-frontend", serverUpdateH.PerformFrontendUpgrade)
+	}
+
 	// SeAT 配置（管理员）
 	admin.GET("/seat-config", seatH.GetSeatConfig)
 	admin.PUT("/seat-config", seatH.UpdateSeatConfig)

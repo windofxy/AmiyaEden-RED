@@ -11,6 +11,7 @@ type Config struct {
 	SDE         SDEConfig         `mapstructure:"sde"`
 	App         AppConfig         `mapstructure:"app"`
 	AlliancePAP AlliancePAPConfig `mapstructure:"alliance_pap"`
+	GitHub      GitHubConfig      `mapstructure:"github"`
 }
 
 // ServerConfig HTTP 服务配置
@@ -78,4 +79,10 @@ type AppConfig struct {
 type AlliancePAPConfig struct {
 	BaseURL string `mapstructure:"base_url"` // 联盟 PAP API 基础地址
 	APIKey  string `mapstructure:"api_key"`  // 联盟 PAP API Key
+}
+
+// GitHubConfig 用于服务器自更新的 GitHub Release 配置
+type GitHubConfig struct {
+	Owner string `mapstructure:"owner"` // 仓库所有者，例如 zifox666
+	Repo  string `mapstructure:"repo"`  // 仓库名称，例如 AmiyaEden
 }
