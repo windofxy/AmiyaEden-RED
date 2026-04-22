@@ -515,9 +515,7 @@ func (s *EveSSOService) GetValidToken(ctx context.Context, characterID int64) (s
 
 	// Token 已标记为失效
 	if char.TokenInvalid {
-		if err := s.refreshCharacterToken(ctx, char); err != nil {
-			return "", errors.New("该角色的 token 已失效，请重新授权")
-		}
+		return "", errors.New("该角色的 token 已失效，请重新授权")
 	}
 
 	// Token 有效期剩余 < 3 分钟则刷新

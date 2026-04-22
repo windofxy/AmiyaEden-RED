@@ -84,11 +84,25 @@ func (c *Client) doTokenRequest(ctx context.Context, data url.Values) (*TokenRes
 	req.SetBasicAuth(c.ClientID, c.ClientSecret)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := c.HTTPClient.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("token request: %w", err)
+	retryCount := 0
+	var resp *http.Response
+	var err error
+	for {
+		resp, err = c.HTTPClient.Do(req)
+		if err != nil && retryCount < 3 {
+			retryCount++
+			// 等待 1 秒后重试
+			time.Sleep(time.Second)
+			continue
+		}
+		else if err == nil {
+			defer resp.Body.Close()
+			break
+		}
+		else {
+			return nil, fmt.Errorf("token request: %w", err)
+		}
 	}
-	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
