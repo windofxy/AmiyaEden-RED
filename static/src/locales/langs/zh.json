@@ -706,7 +706,11 @@
         "weight": "概率权重",
         "weightHint": "权重越高概率越大",
         "totalStock": "总库存",
-        "stockHint": "0 表示不限量"
+        "stockHint": "0 表示不限量",
+        "needDelivery": "需要发放",
+        "needDeliveryHint": "关闭后该奖品抽中时不会生成抽奖记录",
+        "needDeliveryEnabled": "需要发放",
+        "needDeliveryDisabled": "无需发放"
       },
       "recordColumns": {
         "userId": "用户 ID",

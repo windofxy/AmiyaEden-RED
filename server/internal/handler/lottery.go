@@ -19,9 +19,7 @@ func NewLotteryHandler() *LotteryHandler {
 	return &LotteryHandler{svc: service.NewLotteryService()}
 }
 
-// ─────────────────────────────────────────────
-//  用户端
-// ─────────────────────────────────────────────
+// 用户端
 
 type lotteryListRequest struct {
 	Current int `json:"current"`
@@ -79,9 +77,7 @@ func (h *LotteryHandler) GetMyRecords(c *gin.Context) {
 	response.OKWithPage(c, list, total, req.Current, req.Size)
 }
 
-// ─────────────────────────────────────────────
-//  管理员端
-// ─────────────────────────────────────────────
+// 管理员端
 
 // AdminListActivities POST /system/shop/lottery/list
 func (h *LotteryHandler) AdminListActivities(c *gin.Context) {
@@ -190,12 +186,13 @@ func (h *LotteryHandler) AdminDeleteActivity(c *gin.Context) {
 }
 
 type adminPrizeCreateRequest struct {
-	ActivityID        uint   `json:"activity_id" binding:"required"`
+	ActivityID        uint  `json:"activity_id" binding:"required"`
 	Name              string `json:"name" binding:"required"`
 	Image             string `json:"image"`
 	Tier              string `json:"tier"`
 	ProbabilityWeight int    `json:"probability_weight"`
 	TotalStock        int    `json:"total_stock"`
+	NeedDelivery      *bool  `json:"need_delivery"`
 }
 
 // AdminCreatePrize POST /system/shop/lottery/prize/add
@@ -208,6 +205,12 @@ func (h *LotteryHandler) AdminCreatePrize(c *gin.Context) {
 	if req.Tier == "" {
 		req.Tier = model.LotteryPrizeTierNormal
 	}
+
+	needDelivery := true
+	if req.NeedDelivery != nil {
+		needDelivery = *req.NeedDelivery
+	}
+
 	prize := &model.ShopLotteryPrize{
 		ActivityID:        req.ActivityID,
 		Name:              req.Name,
@@ -215,6 +218,7 @@ func (h *LotteryHandler) AdminCreatePrize(c *gin.Context) {
 		Tier:              req.Tier,
 		ProbabilityWeight: req.ProbabilityWeight,
 		TotalStock:        req.TotalStock,
+		NeedDelivery:      needDelivery,
 	}
 	if err := h.svc.AdminCreatePrize(prize); err != nil {
 		response.Fail(c, response.CodeBizError, err.Error())

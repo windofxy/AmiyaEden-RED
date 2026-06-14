@@ -1073,6 +1073,7 @@ declare namespace Api {
       probability_weight: number
       total_stock: number
       drawn_count: number
+      need_delivery: boolean
       created_at: string
       updated_at: string
     }
@@ -1147,6 +1148,7 @@ declare namespace Api {
       tier?: LotteryPrizeTier
       probability_weight?: number
       total_stock?: number
+      need_delivery?: boolean
     }
 
     /** 更新奖品参数 */
@@ -1157,6 +1159,7 @@ declare namespace Api {
       tier?: LotteryPrizeTier
       probability_weight?: number
       total_stock?: number
+      need_delivery?: boolean
     }
   }
 

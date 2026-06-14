@@ -661,6 +661,87 @@ POST /shop/redeem/list
 
 ---
 
+### 9.6 获取抽奖活动列表
+
+```
+POST /shop/lottery/list
+```
+
+> 需要 JWT
+
+**请求体：**
+
+```json
+{ "current": 1, "size": 20 }
+```
+
+**说明：**
+
+- 返回进行中的抽奖活动及其奖品列表
+- 奖品对象包含 `need_delivery` 字段，表示该奖品是否需要后续发放
+
+---
+
+### 9.7 执行抽奖
+
+```
+POST /shop/lottery/draw
+```
+
+> 需要 JWT
+
+**请求体：**
+
+```json
+{ "activity_id": 1 }
+```
+
+**响应示例：**
+
+```json
+{
+  "prize": {
+    "id": 10,
+    "activity_id": 1,
+    "name": "旗舰蓝图",
+    "tier": "legendary",
+    "probability_weight": 1,
+    "total_stock": 10,
+    "drawn_count": 3,
+    "need_delivery": true
+  },
+  "cost": 100
+}
+```
+
+**说明：**
+
+- 当抽中的奖品 `need_delivery = false` 时，接口仍会正常返回中奖结果
+- 但该次中奖不会写入抽奖记录，因此不会出现在 `/shop/lottery/records` 和管理员记录列表中
+
+---
+
+### 9.8 获取我的抽奖记录
+
+```
+POST /shop/lottery/records
+```
+
+> 需要 JWT
+
+**请求体：**
+
+```json
+{ "current": 1, "size": 20 }
+```
+
+**说明：**
+
+- 仅返回需要发放的中奖记录
+- 若某奖品配置为 `need_delivery = false`，其中奖结果不会出现在该列表中
+
+---
+
 ## 10. SRP 补损
 
 > 基础路径：`/srp`，需要 JWT
@@ -1050,7 +1131,53 @@ POST /system/pap/settle
 
 ---
 
-### 12.10 自动权限映射管理
+### 12.10 商店管理（抽奖）
+
+| 方法   | 路径                                  | 说明             |
+| ------ | ------------------------------------- | ---------------- |
+| `POST` | `/system/shop/lottery/list`           | 抽奖活动列表     |
+| `POST` | `/system/shop/lottery/add`            | 创建抽奖活动     |
+| `POST` | `/system/shop/lottery/edit`           | 更新抽奖活动     |
+| `POST` | `/system/shop/lottery/delete`         | 删除抽奖活动     |
+| `POST` | `/system/shop/lottery/prize/add`      | 新增奖品         |
+| `POST` | `/system/shop/lottery/prize/edit`     | 更新奖品         |
+| `POST` | `/system/shop/lottery/prize/delete`   | 删除奖品         |
+| `POST` | `/system/shop/lottery/records`        | 抽奖记录列表     |
+| `POST` | `/system/shop/lottery/records/deliver`| 更新记录发放状态 |
+
+**新增奖品请求体：**
+
+```json
+{
+  "activity_id": 1,
+  "name": "参与奖",
+  "image": "",
+  "tier": "normal",
+  "probability_weight": 100,
+  "total_stock": 0,
+  "need_delivery": true
+}
+```
+
+**更新奖品请求体：**
+
+```json
+{
+  "id": 10,
+  "name": "参与奖",
+  "need_delivery": false
+}
+```
+
+**字段说明：**
+
+- `need_delivery`：是否需要发放，默认 `true`
+- 当 `need_delivery = false` 时，抽中该奖品不会生成抽奖记录
+- 因此该结果不会出现在用户端 `/shop/lottery/records` 和管理端 `/system/shop/lottery/records`
+
+---
+
+### 12.11 自动权限映射管理
 
 | 方法     | 路径                                       | 说明                      |
 | -------- | ------------------------------------------ | ------------------------- |

@@ -705,7 +705,11 @@
         "weight": "Probability weight",
         "weightHint": "Higher weight = higher chance",
         "totalStock": "Total stock",
-        "stockHint": "0 means unlimited"
+        "stockHint": "0 means unlimited",
+        "needDelivery": "Needs delivery",
+        "needDeliveryHint": "When disabled, drawing this prize will not create a lottery record",
+        "needDeliveryEnabled": "Needs delivery",
+        "needDeliveryDisabled": "No delivery needed"
       },
       "recordColumns": {
         "userId": "User ID",

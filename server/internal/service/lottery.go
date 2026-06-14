@@ -22,9 +22,7 @@ func NewLotteryService() *LotteryService {
 	}
 }
 
-// ─────────────────────────────────────────────
-//  用户端
-// ─────────────────────────────────────────────
+// 用户端
 
 // ListActiveActivities 获取用户可见的抽奖活动列表（含奖品）
 func (s *LotteryService) ListActiveActivities(page, pageSize int) ([]model.ShopLotteryActivity, int64, error) {
@@ -95,18 +93,20 @@ func (s *LotteryService) Draw(userID uint, activityID uint) (*DrawResult, error)
 	// 6. 递增奖品已抽出数量
 	_ = s.repo.IncrementPrizeDrawnCount(prize.ID)
 
-	// 7. 记录抽奖结果
-	record := &model.ShopLotteryRecord{
-		UserID:       userID,
-		ActivityID:   activityID,
-		ActivityName: activity.Name,
-		PrizeID:      prize.ID,
-		PrizeName:    prize.Name,
-		PrizeTier:    prize.Tier,
-		PrizeImage:   prize.Image,
-		Cost:         activity.CostPerDraw,
+	// 7. 仅对需要发放的奖品记录抽奖结果
+	if prize.NeedDelivery {
+		record := &model.ShopLotteryRecord{
+			UserID:       userID,
+			ActivityID:   activityID,
+			ActivityName: activity.Name,
+			PrizeID:      prize.ID,
+			PrizeName:    prize.Name,
+			PrizeTier:    prize.Tier,
+			PrizeImage:   prize.Image,
+			Cost:         activity.CostPerDraw,
+		}
+		_ = s.repo.CreateRecord(record)
 	}
-	_ = s.repo.CreateRecord(record)
 
 	return &DrawResult{
 		Prize: prize,
@@ -125,9 +125,7 @@ func (s *LotteryService) GetMyLotteryRecords(userID uint, page, pageSize int) ([
 	return s.repo.ListRecords(page, pageSize, &uid, nil)
 }
 
-// ─────────────────────────────────────────────
-//  管理员端
-// ─────────────────────────────────────────────
+// 管理员端
 
 // AdminListActivities 管理员查询所有活动
 func (s *LotteryService) AdminListActivities(page, pageSize int) ([]model.ShopLotteryActivity, int64, error) {
@@ -230,6 +228,9 @@ func (s *LotteryService) AdminUpdatePrize(id uint, req *AdminLotteryPrizeUpdateR
 	if req.TotalStock != nil {
 		p.TotalStock = *req.TotalStock
 	}
+	if req.NeedDelivery != nil {
+		p.NeedDelivery = *req.NeedDelivery
+	}
 	if err := s.repo.UpdatePrize(p); err != nil {
 		return nil, err
 	}
@@ -244,6 +245,7 @@ type AdminLotteryPrizeUpdateRequest struct {
 	Tier              *string `json:"tier"`
 	ProbabilityWeight *int    `json:"probability_weight"`
 	TotalStock        *int    `json:"total_stock"`
+	NeedDelivery      *bool   `json:"need_delivery"`
 }
 
 // AdminDeletePrize 删除奖品
@@ -270,9 +272,7 @@ func (s *LotteryService) AdminListRecords(page, pageSize int, activityID *uint) 
 	return s.repo.ListRecords(page, pageSize, nil, activityID)
 }
 
-// ─────────────────────────────────────────────
-//  内部工具
-// ─────────────────────────────────────────────
+// 内部工具
 
 // weightedRandom 根据 ProbabilityWeight 进行加权随机选择
 func weightedRandom(prizes []model.ShopLotteryPrize) model.ShopLotteryPrize {

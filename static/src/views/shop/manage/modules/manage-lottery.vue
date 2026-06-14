@@ -1,10 +1,8 @@
 <!-- 抽奖活动管理面板 -->
 <template>
   <ElCard class="art-table-card" shadow="never">
-    <!-- 标签页：活动管理 / 抽奖记录 -->
     <ElTabs v-model="activeSubTab">
       <ElTabPane :label="t('lottery.manage.activitiesTab')" name="activities">
-        <!-- 工具栏 -->
         <div class="flex items-center gap-2 mb-3">
           <ElButton type="success" :icon="Plus" @click="openCreateActivity">{{
             t('lottery.manage.createActivity')
@@ -14,7 +12,6 @@
           </ElButton>
         </div>
 
-        <!-- 活动列表 -->
         <div v-loading="activityLoading" class="activity-list">
           <ElEmpty
             v-if="!activityLoading && activities.length === 0"
@@ -67,7 +64,6 @@
               </div>
             </div>
 
-            <!-- 奖品预览 -->
             <div
               v-if="act.prizes && act.prizes.length > 0"
               class="prizes-preview mt-3 pt-3 border-t border-gray-700"
@@ -127,7 +123,6 @@
     </ElTabs>
   </ElCard>
 
-  <!-- 创建/编辑活动对话框 -->
   <ElDialog
     v-model="activityDialogVisible"
     :title="editingActivity ? t('lottery.manage.editActivity') : t('lottery.manage.createActivity')"
@@ -149,7 +144,6 @@
           :placeholder="t('lottery.manage.fields.descriptionPlaceholder')"
         />
       </ElFormItem>
-      <!-- 图片上传区域 -->
       <ElFormItem>
         <template #label>
           {{ t('lottery.manage.fields.coverImage') }}
@@ -159,7 +153,7 @@
             <ElRadioButton label="upload">{{ t('lottery.manage.uploadImage') }}</ElRadioButton>
             <ElRadioButton label="url">{{ t('lottery.manage.inputImageUrl') }}</ElRadioButton>
           </ElRadioGroup>
-          
+
           <div v-if="activityImageSourceType === 'upload'" style="margin-top: 10px;">
             <div class="image-upload-area">
               <div v-if="activityForm.image" class="image-preview">
@@ -188,7 +182,7 @@
               </ElUpload>
             </div>
           </div>
-          
+
           <div v-else-if="activityImageSourceType === 'url'" class="image-url-input" style="margin-top: 10px;">
             <ElInput
               v-model="activityForm.image"
@@ -255,7 +249,6 @@
     </template>
   </ElDialog>
 
-  <!-- 奖品管理抽屉 -->
   <ElDrawer
     v-model="prizeDrawerVisible"
     :title="t('lottery.manage.managePrizesTitle', { name: prizeActivity?.name ?? '' })"
@@ -272,7 +265,6 @@
       t('lottery.manage.noPrizesHint')
     }}</div>
 
-    <!-- 奖品列表 -->
     <div class="prize-list">
       <div v-for="prize in currentPrizes" :key="prize.id" class="prize-item">
         <div class="prize-tier-bar" :class="`tier-${prize.tier}`"></div>
@@ -292,6 +284,12 @@
               }}
             </template>
             <template v-else> &nbsp;|&nbsp; {{ t('lottery.manage.stockUnlimited') }} </template>
+            &nbsp;|&nbsp;
+            {{
+              prize.need_delivery
+                ? t('lottery.manage.prizeFields.needDeliveryEnabled')
+                : t('lottery.manage.prizeFields.needDeliveryDisabled')
+            }}
           </div>
         </div>
         <div class="prize-actions flex gap-1 ml-auto">
@@ -303,7 +301,6 @@
       </div>
     </div>
 
-    <!-- 总权重提示 -->
     <div v-if="currentPrizes.length > 0" class="mt-4 p-3 rounded bg-gray-800 text-xs text-gray-400">
       {{ t('lottery.manage.totalWeight') }}: {{ totalWeight }} &nbsp;|&nbsp;
       <span v-for="prize in currentPrizes" :key="prize.id">
@@ -312,7 +309,6 @@
     </div>
   </ElDrawer>
 
-  <!-- 创建/编辑奖品对话框 -->
   <ElDialog
     v-model="prizeDialogVisible"
     :title="editingPrize ? t('lottery.manage.editPrize') : t('lottery.manage.addPrize')"
@@ -326,14 +322,13 @@
           :placeholder="t('lottery.manage.prizeFields.namePlaceholder')"
         />
       </ElFormItem>
-      <!-- 图片上传区域 -->
       <ElFormItem :label="t('lottery.manage.prizeFields.image')">
         <div style="display: flex; flex-direction: column; width: 100%;">
           <ElRadioGroup v-model="prizeImageSourceType" style="margin-bottom: 15px">
             <ElRadioButton label="upload">{{ t('lottery.manage.uploadImage') }}</ElRadioButton>
             <ElRadioButton label="url">{{ t('lottery.manage.inputImageUrl') }}</ElRadioButton>
           </ElRadioGroup>
-          
+
           <div v-if="prizeImageSourceType === 'upload'" style="margin-top: 10px;">
             <div class="image-upload-area small">
               <div v-if="prizeForm.image" class="image-preview">
@@ -364,7 +359,7 @@
               </ElUpload>
             </div>
           </div>
-          
+
           <div v-else-if="prizeImageSourceType === 'url'" class="image-url-input" style="margin-top: 10px;">
             <ElInput
               v-model="prizeForm.image"
@@ -410,6 +405,12 @@
           t('lottery.manage.prizeFields.stockHint')
         }}</span>
       </ElFormItem>
+      <ElFormItem :label="t('lottery.manage.prizeFields.needDelivery')">
+        <ElSwitch v-model="prizeForm.need_delivery" />
+        <span class="ml-2 text-xs text-gray-400">{{
+          t('lottery.manage.prizeFields.needDeliveryHint')
+        }}</span>
+      </ElFormItem>
     </ElForm>
     <template #footer>
       <ElButton @click="prizeDialogVisible = false">{{ t('common.cancel') }}</ElButton>
@@ -437,7 +438,8 @@
     ElDatePicker,
     ElEmpty,
     ElRadioGroup,
-    ElRadioButton
+    ElRadioButton,
+    ElSwitch
   } from 'element-plus'
   import type { FormInstance, FormRules, UploadRequestOptions } from 'element-plus'
   import { Plus, Refresh, Delete, Loading } from '@element-plus/icons-vue'
@@ -474,11 +476,10 @@
     legendary: t('lottery.tier.legendary')
   }))
 
-  // ─── 活动列表 ───
   const activeSubTab = ref('activities')
   const activityLoading = ref(false)
   const activities = ref<LotteryActivity[]>([])
-  const allActivities = ref<LotteryActivity[]>([]) // 用于 records 筛选
+  const allActivities = ref<LotteryActivity[]>([])
 
   async function loadActivities() {
     activityLoading.value = true
@@ -498,7 +499,6 @@
     return new Date(t).toLocaleString('zh-CN', { hour12: false })
   }
 
-  // ─── 创建/编辑活动 ───
   const activityDialogVisible = ref(false)
   const activitySubmitting = ref(false)
   const activityFormRef = ref<FormInstance>()
@@ -533,7 +533,6 @@
       end_at: null,
       sort_order: 0
     })
-    // 重置时默认为上传模式
     activityImageSourceType.value = 'upload'
     editingActivity.value = null
   }
@@ -555,7 +554,6 @@
       end_at: act.end_at ? new Date(act.end_at) : null,
       sort_order: act.sort_order
     })
-    // 根据现有图片URL自动选择图片源类型
     if (act.image && (act.image.startsWith('http://') || act.image.startsWith('https://'))) {
       activityImageSourceType.value = 'url'
     } else {
@@ -609,7 +607,6 @@
     }
   }
 
-  // ─── 图片上传 ───
   function handleImageBeforeUpload(file: File) {
     if (file.size > 5 * 1024 * 1024) {
       ElMessage.error(t('lottery.manage.imageTooLarge'))
@@ -631,7 +628,6 @@
     }
   }
 
-  // ─── 奖品图片上传 ───
   const prizeImageUploading = ref(false)
   const prizeImageSourceType = ref<'upload' | 'url'>('upload')
 
@@ -648,13 +644,11 @@
     }
   }
 
-  // ─── SDE 搜索选择奖品图片 ───
   const prizeSdeTypeId = ref<number | null>(null)
 
   function onPrizeSdeSelect(item: Api.Sde.FuzzySearchItem | null) {
     if (item) {
       prizeForm.image = `https://images.evetech.net/types/${item.id}/icon?size=64`
-      // 当使用SDE选择时，自动切换到URL模式
       prizeImageSourceType.value = 'url'
       if (!prizeForm.name) {
         prizeForm.name = item.name
@@ -662,7 +656,6 @@
     }
   }
 
-  // ─── 奖品管理 ───
   const prizeDrawerVisible = ref(false)
   const prizeActivity = ref<LotteryActivity | null>(null)
   const currentPrizes = computed(() => prizeActivity.value?.prizes ?? [])
@@ -685,7 +678,8 @@
     image: '',
     tier: 'normal' as Api.Shop.LotteryPrizeTier,
     probability_weight: 10,
-    total_stock: 0
+    total_stock: 0,
+    need_delivery: true
   })
 
   const prizeRules = computed<FormRules>(() => ({
@@ -700,9 +694,9 @@
       image: '',
       tier: 'normal',
       probability_weight: 10,
-      total_stock: 0
+      total_stock: 0,
+      need_delivery: true
     })
-    // 重置时默认为上传模式
     prizeImageSourceType.value = 'upload'
     prizeSdeTypeId.value = null
     prizeDialogVisible.value = true
@@ -715,9 +709,9 @@
       image: prize.image,
       tier: prize.tier,
       probability_weight: prize.probability_weight,
-      total_stock: prize.total_stock
+      total_stock: prize.total_stock,
+      need_delivery: prize.need_delivery
     })
-    // 根据现有图片URL自动选择图片源类型
     if (prize.image && (prize.image.startsWith('http://') || prize.image.startsWith('https://'))) {
       prizeImageSourceType.value = 'url'
     } else {
@@ -740,9 +734,7 @@
         ElMessage.success(t('lottery.manage.addSuccess'))
       }
       prizeDialogVisible.value = false
-      // 重新加载活动列表以刷新奖品
       await loadActivities()
-      // 重定向当前 prizeActivity 到刷新后的数据
       if (prizeActivity.value) {
         const updated = activities.value.find((a) => a.id === prizeActivity.value!.id)
         if (updated) prizeActivity.value = updated
@@ -777,7 +769,6 @@
     }
   }
 
-  // ─── 抽奖记录 ───
   const recordLoading = ref(false)
   const records = ref<LotteryRecord[]>([])
   const recordActivityFilter = ref<number | undefined>(undefined)
@@ -896,7 +887,6 @@
     loadRecords()
   }
 
-  // ─── 初始化 ───
   onMounted(() => {
     loadActivities()
   })
@@ -971,14 +961,15 @@
   .tier-normal {
     background: var(--el-color-info);
   }
+
   .tier-rare {
     background: var(--el-color-warning);
   }
+
   .tier-legendary {
     background: var(--el-color-danger);
   }
 
-  /* 奖品图片 */
   .prize-tag-img {
     width: 16px;
     height: 16px;
@@ -1002,7 +993,6 @@
     object-fit: cover;
   }
 
-  /* 图片上传 */
   .image-upload-area {
     width: 100px;
     height: 100px;
@@ -1010,6 +1000,11 @@
     border-radius: 6px;
     overflow: hidden;
     background: var(--el-fill-color-lighter);
+  }
+
+  .image-upload-area.small {
+    width: 100px;
+    height: 100px;
   }
 
   .image-preview {
