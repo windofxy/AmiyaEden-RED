@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 const (
@@ -36,7 +35,7 @@ func NewClient(clientID, clientSecret, callbackURL string) *Client {
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		CallbackURL:  callbackURL,
-		HTTPClient:   &http.Client{Timeout: 30 * time.Second},
+		HTTPClient:   &http.Client{},
 	}
 }
 
@@ -57,6 +56,38 @@ type TokenResponse struct {
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
+}
+
+// OAuthError 表示结构化的 EVE SSO OAuth 错误响应
+type OAuthError struct {
+	StatusCode       int
+	ErrorCode        string `json:"error"`
+	ErrorDescription string `json:"error_description"`
+	RawBody          string `json:"-"`
+}
+
+func (e *OAuthError) Error() string {
+	if e == nil {
+		return "<nil>"
+	}
+	if e.ErrorCode != "" && e.ErrorDescription != "" {
+		return fmt.Sprintf("EVE SSO error %d: %s (%s)", e.StatusCode, e.ErrorCode, e.ErrorDescription)
+	}
+	if e.ErrorCode != "" {
+		return fmt.Sprintf("EVE SSO error %d: %s", e.StatusCode, e.ErrorCode)
+	}
+	if e.RawBody != "" {
+		return fmt.Sprintf("EVE SSO error %d: %s", e.StatusCode, e.RawBody)
+	}
+	return fmt.Sprintf("EVE SSO error %d", e.StatusCode)
+}
+
+// IsInvalidGrant 判断 OAuth 服务端是否明确拒绝了当前 grant
+func (e *OAuthError) IsInvalidGrant() bool {
+	if e == nil {
+		return false
+	}
+	return strings.EqualFold(e.ErrorCode, "invalid_grant")
 }
 
 // ExchangeCode 用授权码换取 Token
@@ -84,25 +115,11 @@ func (c *Client) doTokenRequest(ctx context.Context, data url.Values) (*TokenRes
 	req.SetBasicAuth(c.ClientID, c.ClientSecret)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	retryCount := 0
-	var resp *http.Response
-	var err error
-	for {
-		resp, err = c.HTTPClient.Do(req)
-		if err != nil && retryCount < 3 {
-			retryCount++
-			// 等待 1 秒后重试
-			time.Sleep(time.Second)
-			continue
-		}
-		else if err == nil {
-			defer resp.Body.Close()
-			break
-		}
-		else {
-			return nil, fmt.Errorf("token request: %w", err)
-		}
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("token request: %w", err)
 	}
+	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -110,7 +127,16 @@ func (c *Client) doTokenRequest(ctx context.Context, data url.Values) (*TokenRes
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("EVE SSO error %d: %s", resp.StatusCode, string(body))
+		var oauthErr OAuthError
+		if jsonErr := json.Unmarshal(body, &oauthErr); jsonErr == nil {
+			oauthErr.StatusCode = resp.StatusCode
+			oauthErr.RawBody = string(body)
+			return nil, &oauthErr
+		}
+		return nil, &OAuthError{
+			StatusCode: resp.StatusCode,
+			RawBody:    string(body),
+		}
 	}
 
 	var tokenResp TokenResponse
@@ -122,23 +148,22 @@ func (c *Client) doTokenRequest(ctx context.Context, data url.Values) (*TokenRes
 
 // JWTClaims EVE SSO v2 JWT access_token 解析后的载荷
 type JWTClaims struct {
-	Sub    string      `json:"sub"`   // "CHARACTER:EVE:12345678"
-	Name   string      `json:"name"`  // 角色名
-	Owner  string      `json:"owner"` // 角色所有者哈希
-	Scopes interface{} `json:"scp"`   // string 或 []interface{}
+	Sub    string      `json:"sub"`
+	Name   string      `json:"name"`
+	Owner  string      `json:"owner"`
+	Scopes interface{} `json:"scp"`
 	Exp    int64       `json:"exp"`
 	Iss    string      `json:"iss"`
 	Azp    string      `json:"azp"`
 }
 
-// ParseAccessToken 解码 EVE SSO JWT access_token 载荷（不验签，Token 来自 EVE 服务器 HTTPS 响应，安全可信）
+// ParseAccessToken 解码 EVE SSO JWT access_token 的 payload
 func ParseAccessToken(accessToken string) (*JWTClaims, error) {
 	parts := strings.Split(accessToken, ".")
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("invalid JWT format")
 	}
 
-	// 补全 Base64URL padding
 	payload := parts[1]
 	switch len(payload) % 4 {
 	case 2:
@@ -149,7 +174,6 @@ func ParseAccessToken(accessToken string) (*JWTClaims, error) {
 
 	decoded, err := base64.URLEncoding.DecodeString(payload)
 	if err != nil {
-		// 尝试 RawURLEncoding
 		decoded, err = base64.RawURLEncoding.DecodeString(parts[1])
 		if err != nil {
 			return nil, fmt.Errorf("decode JWT payload: %w", err)
@@ -176,7 +200,7 @@ func (c *JWTClaims) GetCharacterID() (int64, error) {
 	return id, nil
 }
 
-// GetScopes 将 scp 字段（可能是 string 或 []interface{}）统一返回 []string
+// GetScopes 将 scp 字段统一转换为 []string
 func (c *JWTClaims) GetScopes() []string {
 	if c.Scopes == nil {
 		return nil

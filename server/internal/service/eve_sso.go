@@ -532,15 +532,16 @@ func (s *EveSSOService) GetValidToken(ctx context.Context, characterID int64) (s
 func (s *EveSSOService) refreshCharacterToken(ctx context.Context, char *model.EveCharacter) error {
 	tokenResp, err := s.eveClient.RefreshAccessToken(ctx, char.RefreshToken)
 	if err != nil {
-		char.TokenInvalid = true
-		_ = s.charRepo.Update(char)
+		var oauthErr *eve.OAuthError
+		if errors.As(err, &oauthErr) && oauthErr.IsInvalidGrant() {
+			char.TokenInvalid = true
+			_ = s.charRepo.Update(char)
+		}
 		return err
 	}
 
 	claims, err := eve.ParseAccessToken(tokenResp.AccessToken)
 	if err != nil {
-		char.TokenInvalid = true
-		_ = s.charRepo.Update(char)
 		return err
 	}
 
