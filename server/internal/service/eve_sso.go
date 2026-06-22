@@ -475,9 +475,23 @@ func (s *EveSSOService) HandleCallback(ctx context.Context, code, state, clientI
 	if user.PrimaryCharacterID == 0 {
 		user.PrimaryCharacterID = characterID
 	}
-	// 同步头像和昵称为主角色
-	user.Avatar = portraitURL
-	user.Nickname = claims.Name
+	// 同步头像和昵称为主角色，避免使用非主角色登录时覆盖用户展示名
+	if user.PrimaryCharacterID == characterID {
+		user.Avatar = portraitURL
+		if !user.NicknameCustom {
+			user.Nickname = claims.Name
+		}
+	} else if primaryChar, err := s.charRepo.GetByCharacterID(user.PrimaryCharacterID); err == nil {
+		user.Avatar = primaryChar.PortraitURL
+		if !user.NicknameCustom {
+			user.Nickname = primaryChar.CharacterName
+		}
+	} else {
+		global.Logger.Warn("同步用户主角色资料失败",
+			zap.Uint("userID", user.ID),
+			zap.Int64("primaryCharacterID", user.PrimaryCharacterID),
+			zap.Error(err))
+	}
 	if err := s.userRepo.Update(user); err != nil {
 		return nil, err
 	}
@@ -577,7 +591,9 @@ func (s *EveSSOService) SetPrimaryCharacter(userID uint, characterID int64) erro
 
 	user.PrimaryCharacterID = characterID
 	user.Avatar = char.PortraitURL
-	user.Nickname = char.CharacterName
+	if !user.NicknameCustom {
+		user.Nickname = char.CharacterName
+	}
 	return s.userRepo.Update(user)
 }
 
@@ -610,7 +626,9 @@ func (s *EveSSOService) UnbindCharacter(userID uint, characterID int64) error {
 			if c.CharacterID != characterID {
 				user.PrimaryCharacterID = c.CharacterID
 				user.Avatar = c.PortraitURL
-				user.Nickname = c.CharacterName
+				if !user.NicknameCustom {
+					user.Nickname = c.CharacterName
+				}
 				break
 			}
 		}

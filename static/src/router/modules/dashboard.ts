@@ -21,6 +21,15 @@ export const dashboardRoutes: AppRouteRecord = {
       }
     },
     {
+      path: 'user-info',
+      name: 'DashboardUserInfo',
+      component: '/dashboard/user-info',
+      meta: {
+        title: 'menus.dashboard.userInfo',
+        keepAlive: true
+      }
+    },
+    {
       path: 'characters',
       name: 'Characters',
       component: '/dashboard/characters',

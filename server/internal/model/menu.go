@@ -103,6 +103,7 @@ func GetSystemMenuSeeds() []MenuSeed {
 		// ── Dashboard ──
 		{ParentName: "", Menu: Menu{Type: MenuTypeDir, Name: "Dashboard", Path: "/dashboard", Component: "/index/index", Title: "menus.dashboard.title", Icon: "ri:pie-chart-line", Sort: 100, Status: 1}},
 		{ParentName: "Dashboard", Menu: Menu{Type: MenuTypeMenu, Name: "Console", Path: "console", Component: "/dashboard/console", Title: "menus.dashboard.console", Sort: 100, FixedTab: true, Status: 1}},
+		{ParentName: "Dashboard", Menu: Menu{Type: MenuTypeMenu, Name: "DashboardUserInfo", Path: "user-info", Component: "/dashboard/user-info", Title: "menus.dashboard.userInfo", Sort: 95, KeepAlive: true, Status: 1}},
 		{ParentName: "Dashboard", Menu: Menu{Type: MenuTypeMenu, Name: "Characters", Path: "characters", Component: "/dashboard/characters", Title: "menus.characters.title", Sort: 90, KeepAlive: true, Status: 1}},
 
 		// ── Operation ──
@@ -113,6 +114,10 @@ func GetSystemMenuSeeds() []MenuSeed {
 		{ParentName: "Operation", Menu: Menu{Type: MenuTypeMenu, Name: "MyPap", Path: "pap", Component: "/operation/pap", Title: "menus.operation.pap", Sort: 80, KeepAlive: true, Status: 1}},
 		{ParentName: "Operation", Menu: Menu{Type: MenuTypeMenu, Name: "JoinFleet", Path: "join", Component: "/operation/join", Title: "menus.operation.join", Sort: 60, IsHide: true, Status: 1}},
 		{ParentName: "Operation", Menu: Menu{Type: MenuTypeMenu, Name: "UserSkillPlan", Path: "skill-plan", Component: "/operation/skill-plan", Title: "menus.operation.skillPlan", Sort: 78, KeepAlive: true, Status: 1}},
+
+		// ── PVE ──
+		{ParentName: "", Menu: Menu{Type: MenuTypeDir, Name: "PVE", Path: "/pve", Component: "/index/index", Title: "menus.pve.title", Icon: "ri:leaf-line", Sort: 89, Status: 1}},
+		{ParentName: "PVE", Menu: Menu{Type: MenuTypeMenu, Name: "AOENotification", Path: "aoe-notification", Component: "/pve/aoe-notification", Title: "menus.pve.aoeNotification", Sort: 100, KeepAlive: true, Status: 1}},
 
 		// ── Shop ──
 		{ParentName: "", Menu: Menu{Type: MenuTypeDir, Name: "ShopRoot", Path: "/shop", Component: "/index/index", Title: "menus.shop.title", Icon: "ri:shopping-bag-line", Sort: 85, Status: 1}},
@@ -192,9 +197,9 @@ func GetSystemMenuSeeds() []MenuSeed {
 func DefaultRoleMenuMap() map[string][]string {
 	return map[string][]string{
 		RoleAdmin: {
-			"Dashboard", "Console", "Characters",
+			"Dashboard", "Console", "DashboardUserInfo", "Characters",
 			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips", "EveInfoImplants", "EveInfoFittings", "EveInfoAssets", "EveInfoContracts",
-			"Operation", "Fleets", "FleetConfigs", "FleetDetail", "MyPap", "JoinFleet", "UserSkillPlan",
+			"Operation", "Fleets", "FleetConfigs", "FleetDetail", "MyPap", "JoinFleet", "UserSkillPlan", "PVE", "AOENotification",
 			"CorpManage", "SkillPlanManage", "SkillPlanCheck", "Structures", "FleetBattleIncentive",
 			"ShopRoot", "Shop", "Wallet",
 			"SRP", "SrpApply", "SrpManage", "SrpManageReview", "SrpPrices", "SrpPriceAdd", "SrpPriceDelete",
@@ -202,33 +207,33 @@ func DefaultRoleMenuMap() map[string][]string {
 			"Result", "ResultSuccess", "ResultFail",
 		},
 		RoleFC: {
-			"Dashboard", "Console", "Characters",
+			"Dashboard", "Console", "DashboardUserInfo", "Characters",
 			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips", "EveInfoImplants", "EveInfoFittings", "EveInfoAssets", "EveInfoContracts",
-			"Operation", "Fleets", "FleetDetail", "MyPap", "Wallet", "JoinFleet", "UserSkillPlan",
+			"Operation", "Fleets", "FleetDetail", "MyPap", "Wallet", "JoinFleet", "UserSkillPlan", "PVE", "AOENotification",
 			"CorpManage", "SkillPlanManage", "SkillPlanCheck",
 			"ShopRoot", "Shop",
 			"SRP", "SrpApply", "SrpManage", "SrpManageReview",
 			"Result", "ResultSuccess", "ResultFail",
 		},
 		RoleSRP: {
-			"Dashboard", "Console", "Characters",
+			"Dashboard", "Console", "DashboardUserInfo", "Characters",
 			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips", "EveInfoImplants", "EveInfoFittings", "EveInfoAssets", "EveInfoContracts",
-			"Operation", "MyPap", "Wallet", "JoinFleet",
+			"Operation", "MyPap", "Wallet", "JoinFleet", "PVE", "AOENotification",
 			"ShopRoot", "Shop",
 			"SRP", "SrpApply", "SrpManage", "SrpManageReview", "SrpPrices", "SrpPriceAdd", "SrpPriceDelete",
 			"Result", "ResultSuccess", "ResultFail",
 		},
 		RoleUser: {
-			"Dashboard", "Console", "Characters",
+			"Dashboard", "Console", "DashboardUserInfo", "Characters",
 			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips", "EveInfoImplants", "EveInfoFittings", "EveInfoAssets", "EveInfoContracts",
-			"Operation", "Fleets", "FleetDetail", "MyPap", "Wallet", "JoinFleet", "FleetConfigs", "UserSkillPlan",
+			"Operation", "Fleets", "FleetDetail", "MyPap", "Wallet", "JoinFleet", "FleetConfigs", "UserSkillPlan", "PVE", "AOENotification",
 			"ShopRoot", "Shop",
 			"SRP", "SrpApply",
 			"Result", "ResultSuccess", "ResultFail",
 			"UserCenter",
 		},
 		RoleGuest: {
-			"Dashboard", "Console", "Characters",
+			"Dashboard", "Console", "DashboardUserInfo", "Characters",
 			"EveInfo", "EveInfoWallet", "EveInfoSkill", "NpcKillReport", "EveInfoShips", "EveInfoImplants", "EveInfoFittings", "EveInfoAssets", "EveInfoContracts",
 			"Result", "ResultSuccess", "ResultFail",
 		},

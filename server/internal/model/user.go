@@ -6,6 +6,7 @@ import "time"
 type User struct {
 	BaseModel
 	Nickname           string     `gorm:"size:128"               json:"nickname"`
+	NicknameCustom     bool       `gorm:"not null;default:false" json:"nickname_custom"` // 是否由用户手动指定昵称
 	Avatar             string     `gorm:"size:512"               json:"avatar"`
 	Status             int8       `gorm:"default:1"              json:"status"` // 1:正常 0:禁用
 	Role               string     `gorm:"size:32;default:'user'" json:"role"`

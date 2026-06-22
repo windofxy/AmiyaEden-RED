@@ -82,6 +82,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	user.ID = uint(id)
 	if req.Nickname != "" {
 		user.Nickname = req.Nickname
+		user.NicknameCustom = true
 	}
 	if req.Status != nil {
 		user.Status = *req.Status

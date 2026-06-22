@@ -138,6 +138,16 @@ export function unbindSeat() {
 }
 
 /**
+ * 更新当前登录用户昵称
+ */
+export function updateMyNickname(data: { nickname: string }) {
+  return request.put<Api.Auth.MeResponse['user']>({
+    url: '/api/v1/me',
+    data
+  })
+}
+
+/**
  * 获取当前登录用户信息（从 /me 接口获取并封装成统一格式）
  * @returns 用户信息
  */
@@ -151,17 +161,19 @@ export async function fetchGetUserInfo(): Promise<Api.Auth.UserInfo> {
   // 主角色：根据 primary_character_id 查找，找不到则用第一个，再 fallback 到用户信息
   const primaryChar =
     characters?.find((c) => c.character_id === user.primary_character_id) ?? characters?.[0]
+  const displayName = user.nickname?.trim() || primaryChar?.character_name || `Capsuleer#${user.id}`
 
   // 直接使用后端角色编码，回退到 user.role
   const roles = backendRoles && backendRoles.length > 0 ? backendRoles : [user.role ?? 'user']
 
   return {
     userId: user.id,
-    userName: primaryChar?.character_name ?? user.nickname ?? `Capsuleer#${user.id}`,
+    userName: displayName,
     avatar: primaryChar?.portrait_url ?? user.avatar ?? '',
     roles,
     buttons: permissions ?? [],
     characters: characters ?? [],
-    primaryCharacterId: user.primary_character_id ?? 0
+    primaryCharacterId: user.primary_character_id ?? 0,
+    nicknameCustom: user.nickname_custom ?? false
   }
 }

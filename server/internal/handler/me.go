@@ -24,6 +24,10 @@ func NewMeHandler() *MeHandler {
 	}
 }
 
+type updateMeRequest struct {
+	Nickname string `json:"nickname"`
+}
+
 // GetMe 获取当前登录用户信息
 func (h *MeHandler) GetMe(c *gin.Context) {
 	userID := c.GetUint("userID")
@@ -54,4 +58,23 @@ func (h *MeHandler) GetMe(c *gin.Context) {
 		"roles":       roles,
 		"permissions": permissions,
 	})
+}
+
+// UpdateMe 更新当前登录用户信息
+func (h *MeHandler) UpdateMe(c *gin.Context) {
+	userID := c.GetUint("userID")
+
+	var req updateMeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.Fail(c, response.CodeParamError, "请求参数错误")
+		return
+	}
+
+	user, err := h.userSvc.UpdateOwnNickname(userID, req.Nickname)
+	if err != nil {
+		response.Fail(c, response.CodeBizError, err.Error())
+		return
+	}
+
+	response.OK(c, user)
 }

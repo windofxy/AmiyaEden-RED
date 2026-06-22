@@ -274,7 +274,8 @@
     },
     "dashboard": {
       "title": "仪表盘",
-      "console": "工作台"
+      "console": "工作台",
+      "userInfo": "用户信息"
     },
     "result": {
       "title": "结果页面",
@@ -307,6 +308,10 @@
       "srpManage": "补损审批",
       "srpPrices": "补损价格表",
       "skillPlan": "技能规划"
+    },
+    "pve": {
+      "title": "生产相关",
+      "aoeNotification": "AOE 公告"
     },
     "role": {
       "title": "权限组",
@@ -1178,6 +1183,23 @@
       "unpaid": "待发放"
     }
   },
+  "aoeNotification": {
+    "create": "创建公告",
+    "edit": "编辑公告",
+    "system": "星系",
+    "type": "类型",
+    "remark": "备注",
+    "systemPlaceholder": "请输入星系",
+    "typePlaceholder": "请输入类型",
+    "remarkPlaceholder": "请输入备注",
+    "systemRequired": "请输入星系",
+    "typeRequired": "请输入类型",
+    "createSuccess": "公告已创建",
+    "updateSuccess": "公告已更新",
+    "deleteSuccess": "公告已删除",
+    "deleteConfirm": "确定要删除星系「{system}」的 AOE 公告吗？",
+    "empty": "暂无 AOE 公告"
+  },
   "alliancePap": {
     "title": "联盟 PAP - 全员视图",
     "shortTitle": "联盟 PAP",
@@ -1620,6 +1642,15 @@
         "internal": "内部"
       }
     }
+  },
+  "dashboardUserInfo": {
+    "title": "用户信息",
+    "description": "管理你的系统展示昵称。",
+    "nickname": "用户昵称",
+    "nicknameHint": "手动保存昵称后，重新登录系统不会再被主角色名自动覆盖。",
+    "nicknameRequired": "请输入用户昵称",
+    "saveSuccess": "昵称已保存",
+    "saveFailed": "保存昵称失败"
   },
   "shopBrowse": {
     "purchaseSuccess": "购买成功",

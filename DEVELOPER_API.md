@@ -29,6 +29,7 @@
 - [3. 个人信息](#3-个人信息)
 - [4. 通知](#4-通知)
 - [5. 菜单](#5-菜单)
+- [5.5 PVE](#55-pve)
 - [6. 舰队](#6-舰队)
 - [7. 角色信息 & NPC 刷怪](#7-角色信息--npc-刷怪)
 - [8. 系统钱包（用户端）](#8-系统钱包用户端)
@@ -255,16 +256,71 @@ GET /me
 
 ```json
 {
-  "user": {},
+  "user": {
+    "id": 1,
+    "nickname": "Wind",
+    "nickname_custom": true,
+    "avatar": "https://images.evetech.net/characters/123/portrait",
+    "status": 1,
+    "role": "user",
+    "primary_character_id": 123,
+    "last_login_at": "2026-06-22T12:00:00+08:00",
+    "last_login_ip": "127.0.0.1"
+  },
   "characters": [],
   "roles": ["admin"],
   "permissions": ["srp:review"]
 }
 ```
 
+| 字段 | 类型 | 说明 |
+| ---- | ---- | ---- |
+| `user.nickname_custom` | `bool` | 用户昵称是否由用户手动指定。为 `true` 时，登录或切换主 EVE 角色不会自动覆盖昵称 |
+| `characters` | `EveCharacter[]` | 当前用户绑定的 EVE 角色列表 |
+| `roles` | `string[]` | 当前用户拥有的角色编码 |
+| `permissions` | `string[]` | 当前用户拥有的权限标识 |
+
 ---
 
-### 3.2 获取 Dashboard 数据
+### 3.2 更新当前用户昵称
+
+```
+PUT /me
+```
+
+> 需要 JWT
+
+**请求体**：
+
+```json
+{
+  "nickname": "Wind"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+| ---- | ---- | ---- | ---- |
+| `nickname` | `string` | 是 | 用户昵称，去除首尾空格后不能为空，最大 128 个字符 |
+
+**响应**：
+
+```json
+{
+  "id": 1,
+  "nickname": "Wind",
+  "nickname_custom": true,
+  "avatar": "https://images.evetech.net/characters/123/portrait",
+  "status": 1,
+  "role": "user",
+  "primary_character_id": 123,
+  "last_login_at": "2026-06-22T12:00:00+08:00",
+  "last_login_ip": "127.0.0.1"
+}
+```
+
+---
+
+### 3.3 获取 Dashboard 数据
 
 ```
 POST /dashboard
@@ -339,6 +395,87 @@ GET /menu/list
 > 需要 JWT
 
 **响应**：菜单列表（按当前用户权限过滤）
+
+---
+
+## 5.5 PVE
+
+### 5.5.1 AOE 公告列表
+
+```
+GET /pve/aoe-notifications
+```
+
+> 需要 JWT
+
+| 参数 | 类型 | 必填 | 说明 |
+| ---- | ---- | ---- | ---- |
+| `current` | query | 否 | 页码（默认 1） |
+| `size` | query | 否 | 每页条数（默认 20，最大 100） |
+
+**响应**：
+
+```json
+{
+  "list": [
+    {
+      "id": 1,
+      "creator_user_id": 1,
+      "creator_nickname": "Wind",
+      "created_at": "2026-06-22T12:00:00+08:00",
+      "updated_at": "2026-06-22T12:00:00+08:00",
+      "system": "MJ-5F9",
+      "type": "矿队",
+      "remark": "注意本地安全"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+### 5.5.2 创建 AOE 公告
+
+```
+POST /pve/aoe-notifications
+```
+
+> 需要 JWT
+
+**请求体**：
+
+```json
+{
+  "system": "MJ-5F9",
+  "type": "矿队",
+  "remark": "注意本地安全"
+}
+```
+
+| 字段 | 类型 | 必填 | 说明 |
+| ---- | ---- | ---- | ---- |
+| `system` | `string` | 是 | 星系，最大 128 个字符 |
+| `type` | `string` | 是 | 类型，最大 128 个字符 |
+| `remark` | `string` | 否 | 备注，最大 1024 个字符 |
+
+### 5.5.3 更新 AOE 公告
+
+```
+PUT /pve/aoe-notifications/:id
+```
+
+> 需要 JWT；仅创建人可更新
+
+请求体同创建接口。
+
+### 5.5.4 删除 AOE 公告
+
+```
+DELETE /pve/aoe-notifications/:id
+```
+
+> 需要 JWT；仅创建人可删除
 
 ---
 

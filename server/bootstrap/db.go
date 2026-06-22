@@ -124,6 +124,8 @@ func autoMigrate(db *gorm.DB) {
 		// 技能规划相关表
 		&model.SkillPlan{},
 		&model.SkillPlanItem{},
+		// PVE 相关表
+		&model.AOENotification{},
 		// 系统配置表
 		&model.SystemConfig{},
 		// RBAC 权限相关表

@@ -274,7 +274,8 @@
     },
     "dashboard": {
       "title": "Dashboard",
-      "console": "Console"
+      "console": "Console",
+      "userInfo": "User Info"
     },
     "result": {
       "title": "Result Page",
@@ -332,6 +333,10 @@
       "srpManage": "SRP Review",
       "srpPrices": "SRP Price List",
       "skillPlan": "Skill Plans"
+    },
+    "pve": {
+      "title": "PVE",
+      "aoeNotification": "AOE Notification"
     },
     "role": {
       "title": "Roles",
@@ -1177,6 +1182,23 @@
       "unpaid": "Pending Payout"
     }
   },
+  "aoeNotification": {
+    "create": "Create Notification",
+    "edit": "Edit Notification",
+    "system": "System",
+    "type": "Type",
+    "remark": "Remark",
+    "systemPlaceholder": "Enter system",
+    "typePlaceholder": "Enter type",
+    "remarkPlaceholder": "Enter remark",
+    "systemRequired": "Please enter a system",
+    "typeRequired": "Please enter a type",
+    "createSuccess": "Notification created",
+    "updateSuccess": "Notification updated",
+    "deleteSuccess": "Notification deleted",
+    "deleteConfirm": "Delete the AOE notification for system \"{system}\"?",
+    "empty": "No AOE notifications"
+  },
   "alliancePap": {
     "title": "Alliance PAP - All Members",
     "shortTitle": "Alliance PAP",
@@ -1619,6 +1641,15 @@
         "internal": "Internal"
       }
     }
+  },
+  "dashboardUserInfo": {
+    "title": "User Info",
+    "description": "Manage your system display nickname.",
+    "nickname": "Nickname",
+    "nicknameHint": "After manually saving a nickname, logging in again will not overwrite it with your primary character name.",
+    "nicknameRequired": "Please enter a nickname",
+    "saveSuccess": "Nickname saved",
+    "saveFailed": "Failed to save nickname"
   },
   "shopBrowse": {
     "purchaseSuccess": "Purchase successful",

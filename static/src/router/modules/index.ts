@@ -7,6 +7,7 @@ import { exceptionRoutes } from './exception'
 import { srpRoutes } from './srp'
 import { shopRoutes } from './shop'
 import { infoRoutes } from './info'
+import { pveRoutes } from './pve'
 
 /**
  * 导出所有模块化路由
@@ -15,6 +16,7 @@ export const routeModules: AppRouteRecord[] = [
   dashboardRoutes,
   infoRoutes,
   operationRoutes,
+  pveRoutes,
   shopRoutes,
   systemRoutes,
   resultRoutes,

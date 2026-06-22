@@ -101,6 +101,7 @@ declare namespace Api {
       user: {
         id: number
         nickname: string
+        nickname_custom: boolean
         avatar: string
         status: number
         role: string
@@ -124,6 +125,7 @@ declare namespace Api {
       avatar: string
       characters?: EveCharacter[]
       primaryCharacterId?: number
+      nicknameCustom?: boolean
     }
 
     /** SeAT 绑定信息 */
@@ -1160,6 +1162,34 @@ declare namespace Api {
       probability_weight?: number
       total_stock?: number
       need_delivery?: boolean
+    }
+  }
+
+  /** PVE 相关类型 */
+  namespace PVE {
+    /** AOE 公告 */
+    interface AOENotification {
+      id: number
+      creator_user_id: number
+      creator_nickname: string
+      created_at: string
+      updated_at: string
+      system: string
+      type: string
+      remark: string
+    }
+
+    /** AOE 公告列表参数 */
+    interface AOENotificationListParams {
+      current?: number
+      size?: number
+    }
+
+    /** 创建/更新 AOE 公告参数 */
+    interface AOENotificationRequest {
+      system: string
+      type: string
+      remark: string
     }
   }
 

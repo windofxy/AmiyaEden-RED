@@ -499,7 +499,9 @@ func (s *SeatSSOService) syncSeatCharacters(userID uint, userInfo *eve.SeatUserI
 			if acct.Valid {
 				user.PrimaryCharacterID = acct.ID
 				user.Avatar = eve.PortraitURL(acct.ID)
-				user.Nickname = acct.Name
+				if !user.NicknameCustom {
+					user.Nickname = acct.Name
+				}
 				_ = s.userRepo.Update(user)
 				break
 			}

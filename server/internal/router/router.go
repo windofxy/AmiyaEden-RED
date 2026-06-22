@@ -68,6 +68,7 @@ func RegisterRoutes(r *gin.Engine) {
 	// ─── 当前用户 ───
 	meH := handler.NewMeHandler()
 	auth.GET("/me", meH.GetMe)
+	auth.PUT("/me", meH.UpdateMe)
 
 	dashboardH := handler.NewDashboardHandler()
 	auth.POST("/dashboard", dashboardH.GetDashboard)
@@ -85,6 +86,19 @@ func RegisterRoutes(r *gin.Engine) {
 	// ─── 菜单 ───
 	menuH := handler.NewMenuHandler()
 	auth.GET("/menu/list", menuH.GetMenuList) // 当前用户可用菜单
+
+	// ─── PVE ───
+	aoeNotificationH := handler.NewAOENotificationHandler()
+	pve := auth.Group("/pve")
+	{
+		aoeNotifications := pve.Group("/aoe-notifications")
+		{
+			aoeNotifications.GET("", aoeNotificationH.List)
+			aoeNotifications.POST("", aoeNotificationH.Create)
+			aoeNotifications.PUT("/:id", aoeNotificationH.Update)
+			aoeNotifications.DELETE("/:id", aoeNotificationH.Delete)
+		}
+	}
 
 	// ─── 舰队 ───
 	fleetH := handler.NewFleetHandler()

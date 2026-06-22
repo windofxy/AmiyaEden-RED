@@ -6,6 +6,7 @@ import (
 	"amiya-eden/internal/repository"
 	"amiya-eden/pkg/jwt"
 	"errors"
+	"strings"
 )
 
 type UserService struct {
@@ -69,6 +70,28 @@ func (s *UserService) ListUsers(page, pageSize int, filter repository.UserFilter
 
 func (s *UserService) UpdateUser(user *model.User) error {
 	return s.repo.Update(user)
+}
+
+func (s *UserService) UpdateOwnNickname(userID uint, nickname string) (*model.User, error) {
+	nickname = strings.TrimSpace(nickname)
+	if nickname == "" {
+		return nil, errors.New("昵称不能为空")
+	}
+	if len([]rune(nickname)) > 128 {
+		return nil, errors.New("昵称不能超过128个字符")
+	}
+
+	user, err := s.repo.GetByID(userID)
+	if err != nil {
+		return nil, errors.New("用户不存在")
+	}
+
+	user.Nickname = nickname
+	user.NicknameCustom = true
+	if err := s.repo.Update(user); err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func (s *UserService) DeleteUser(id uint) error {
