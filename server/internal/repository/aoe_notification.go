@@ -42,7 +42,7 @@ func (r *AOENotificationRepository) List(page, pageSize int) ([]model.AOENotific
 	offset := (page - 1) * pageSize
 	db := global.DB.Table("aoe_notification AS an").
 		Select(`an.id, an.creator_user_id, COALESCE(NULLIF(u.nickname, ''), CONCAT('Capsuleer#', an.creator_user_id)) AS creator_nickname, an.created_at, an.updated_at, an.system, an.type, an.remark`).
-		Joins("LEFT JOIN `user` AS u ON u.id = an.creator_user_id AND u.deleted_at IS NULL").
+		Joins(`LEFT JOIN "user" AS u ON u.id = an.creator_user_id AND u.deleted_at IS NULL`).
 		Where("an.deleted_at IS NULL")
 
 	if err := db.Count(&total).Error; err != nil {
